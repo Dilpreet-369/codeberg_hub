@@ -1,25 +1,28 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import app from './app.js'; // Note the explicit '.js' extension required by ESM
-import connectDB from './db/db.js';
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Recreate __dirname since it's not natively available in ES Modules
+import connectDB from "./db/db.js";
+
+import  app  from "./app.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Explicitly point dotenv to your .env file located one level up in the backend folder root
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-const PORT = process.env.PORT || 5000;
-
-// Connect to Database
-connectDB();
-
-// Start Server Listener
-app.listen(PORT, () => {
-  console.log(`🚀 Server sprinting smoothly on port ${PORT}`);
-  console.log(
-    `📡 Database URI Loaded Check: ${process.env.MONGO_URI ? 'SUCCESS' : 'FAILED'}`,
-  );
-});
+connectDB()
+  .then(() => {
+    app.on("error", (error) => {
+      console.log("Express App error", error);
+      throw error;
+    });
+    app.listen(process.env.PORT || 5000, () => {
+      console.log(
+        `Express app is listening on port ${process.env.PORT}`
+      );
+    });
+  })
+  .catch((error) => {
+    console.log("Mongo DB connection FAILED", error);
+  });
