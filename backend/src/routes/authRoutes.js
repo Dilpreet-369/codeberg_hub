@@ -1,0 +1,32 @@
+import express from 'express';
+import {
+  registerUser,
+  loginUser,
+  refreshAccessToken,
+  logoutUser,
+} from '../controller/auth.controller.js';
+import {
+  protectRoute,
+  verifyRefreshToken,
+} from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// 1. Completely Public Endpoints (Anyone can access)
+router.post('/register', registerUser);
+router.post('/login', loginUser);
+router.post('/logout', logoutUser);
+
+// 2. Token Refresh Endpoint (Uses your custom cookie validator middleware)
+router.post('/refresh-token', verifyRefreshToken, refreshAccessToken);
+
+// 3. Example Protected Route (Just to verify our protectRoute gatekeeper works!)
+router.get('/profile', protectRoute, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Welcome to your private profile dashboard!',
+    user: req.user, // Available because protectRoute attached it to req
+  });
+});
+
+export default router;
