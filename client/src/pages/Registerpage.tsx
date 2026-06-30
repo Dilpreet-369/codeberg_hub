@@ -1,15 +1,31 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate hook
+import { useNavigate } from "react-router-dom"; 
+import { GoogleLogin } from "@react-oauth/google"; // 1. Import official Google login component
 import axios from "axios";
 
-const App = () => {
-    const navigate = useNavigate(); // 2. Initialize navigate function
+const Register = () => {
+    const navigate = useNavigate(); 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
     const [status, setStatus] = useState("");
 
-    const handleTestSubmit = async (e: React.FormEvent) => {
+    // Reusable utility function to handle post-authentication state updates and forwarding
+    const handleAuthSuccess = (token: string, message: string) => {
+        localStorage.setItem("authToken", token);
+        setStatus(message);
+        
+        setName("");
+        setEmail("");
+        setPassword("");
+        
+        setTimeout(() => {
+            navigate("/dashboard");
+        }, 1000);
+    };
+
+    // ─── TRADITIONAL EMAIL/PASSWORD REGISTRATION ───
+    const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus("Creating your secure account...");
         
@@ -20,32 +36,37 @@ const App = () => {
                 password
             });
             
-            // 3. Deep Security Session Initialization:
-            // Extract the secure app JWT token returned by your Express server
-            const token = res.data.token;
+            // ✅ FIXED: Corrected path mapping to match your backend data structure payload
+            const token = res.data.data?.accessToken;
             
             if (token) {
-                // Save the string token inside localStorage so the session survives tab refreshes
-                localStorage.setItem("authToken", token);
-                
-                setStatus("✅ Account verified! Redirecting to dashboard...");
-                
-                // Clear state fields for security hygiene
-                setName("");
-                setEmail("");
-                setPassword("");
-                
-                // 4. Smooth Client-Side Route Push:
-                // Redirect the user immediately to the protected dashboard view after 1 second
-                setTimeout(() => {
-                    navigate("/dashboard");
-                }, 1000);
+                handleAuthSuccess(token, "✅ Account verified! Redirecting to dashboard...");
             } else {
                 setStatus("❌ Registration completed, but server failed to issue a session token.");
             }
             
         } catch (err: any) {
             setStatus(`❌ Registration Blocked: ${err.response?.data?.message || err.message}`);
+        }
+    };
+
+    // ─── GOOGLE OAUTH CALLBACK HANDLER ───
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        setStatus("Verifying Google profile with server...");
+        try {
+            // Forward the raw Google credential string token to your backend /google route
+            const res = await axios.post("http://localhost:5000/api/auth/google", {
+                credential: credentialResponse.credential
+            });
+
+            const token = res.data.data?.accessToken;
+            if (token) {
+                handleAuthSuccess(token, "✅ Google Registration verified! Welcome.");
+            } else {
+                setStatus("❌ Google validation succeeded, but no app token was issued.");
+            }
+        } catch (err: any) {
+            setStatus(`❌ Google Auth Failed: ${err.response?.data?.message || err.message}`);
         }
     };
 
@@ -60,7 +81,7 @@ const App = () => {
                 </div>
                 
                 {/* Form */}
-                <form onSubmit={handleTestSubmit} className="flex flex-col gap-4">
+                <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Full Name</label>
                         <input 
@@ -105,6 +126,25 @@ const App = () => {
                     </button>
                 </form>
 
+                {/* ─── VISUAL DIVIDER ─── */}
+                <div className="relative flex py-4 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink mx-4 text-gray-400 text-xs font-semibold uppercase tracking-wider">or</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                </div>
+
+                {/* ─── GOOGLE INTEGRATION HUB ─── */}
+                <div className="w-full flex justify-center">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setStatus("❌ Google Authentication Failed client-side")}
+                        useOneTap
+                        shape="circle"
+                        theme="outline"
+                        width="360px" // Matches width constraints gracefully
+                    />
+                </div>
+
                 {/* Status Notification */}
                 {status && (
                     <div className={`mt-5 p-3 rounded-lg text-sm font-medium border break-all leading-relaxed ${
@@ -115,9 +155,20 @@ const App = () => {
                         {status}
                     </div>
                 )}
+
+                {/* Visual Anchor to toggle between views */}
+                <div className="mt-6 text-center text-sm text-gray-500">
+                    Already have an account?{" "}
+                    <button 
+                        onClick={() => navigate("/login")} 
+                        className="text-indigo-600 font-semibold hover:underline"
+                    >
+                        Sign In here
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
 
-export default App;
+export default Register;

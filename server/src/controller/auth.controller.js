@@ -2,6 +2,62 @@ import User from '../models/user.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import generateTokensAndSetCookie from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
+import {OAuth2Client} from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_SERVER_ID);
+
+export const googleLogin = asyncHandler(async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    res.status(400);
+    throw new Error('Google credential token is missing');
+  }
+
+  // 1. Verify the Google ID Token token securely
+  const ticket = await client.verifyIdToken({
+    idToken: credential,
+    audience: process.env.GOOGLE_SERVER_ID,
+  });
+
+  const payload = ticket.getPayload();
+  const { sub: googleId, email, name } = payload;
+
+  // 2. Query for user by googleId or email
+  let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+  if (user) {
+    // If user exists via email but doesn't have a linked googleId yet, link it now
+    if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+  } else {
+    // 3. Create a new profile entry if it's their first time signing in
+    // Password requirement is bypassed because this.googleId evaluates true on schema configuration
+    user = await User.create({
+      name,
+      email,
+      googleId,
+      isVerified: true, // Google accounts are pre-verified
+    });
+  }
+
+  // 4. Generate tokens and drop the Refresh Token into an HTTP-only cookie using your helper
+  const accessToken = generateTokensAndSetCookie(res, user._id);
+
+  // 5. Send matching structural data back to your client-side layout
+  res.status(200).json({
+    success: true,
+    data: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      accessToken,
+    },
+  });
+});
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;

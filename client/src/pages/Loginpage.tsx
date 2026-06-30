@@ -1,49 +1,68 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate hook
+import { useNavigate } from "react-router-dom"; 
+import { GoogleLogin } from "@react-oauth/google"; // 1. Import official Google login component
 import axios from "axios";
 
 const Login = () => {
-    const navigate = useNavigate(); // 2. Initialize navigate function
+    const navigate = useNavigate(); 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [status, setStatus] = useState("");
 
+    // A reusable helper function to set token, cleanup, and redirect
+    const handleAuthSuccess = (token: string, message: string) => {
+        localStorage.setItem("authToken", token);
+        setStatus(message);
+        
+        setEmail("");
+        setPassword("");
+        
+        setTimeout(() => {
+            navigate("/dashboard");
+        }, 1000);
+    };
+
+    // ─── TRADITIONAL EMAIL/PASSWORD LOGIN ───
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus("Verifying credentials...");
         
         try {
-            // Send email and password to your Express backend login path
             const res = await axios.post("http://localhost:5000/api/auth/login", {
                 email,
-                    password
-                });
-                
-                // 3. Deep Security Session Initialization:
-                const token = res.data.data?.accessToken;
-                
-                if (token) {
-                    // Save the application token so the dashboard route can verify it
-                    localStorage.setItem("authToken", token);
-                    
-                    setStatus("✅ Credentials verified! Welcome back.");
-                    
-                    // State cleanup for input hygiene
-                    setEmail("");
-                    setPassword("");
-                    
-                    // 4. Secure Client-Side Redirect:
-                    setTimeout(() => {
-                        navigate("/dashboard");
-                    }, 1000);
-                } else {
-                    setStatus("❌ Authentication succeeded, but no session token was issued.");
-                }
-                
-            } catch (err: any) {
-                setStatus(`❌ Access Denied: ${err.response?.data?.message || err.message}`);
+                password
+            });
+            
+            const token = res.data.data?.accessToken;
+            if (token) {
+                handleAuthSuccess(token, "✅ Credentials verified! Welcome back.");
+            } else {
+                setStatus("❌ Authentication succeeded, but no session token was issued.");
             }
-        };
+        } catch (err: any) {
+            setStatus(`❌ Access Denied: ${err.response?.data?.message || err.message}`);
+        }
+    };
+
+    // ─── NEW: GOOGLE OAUTH CALLBACK HANDLER ───
+    const handleGoogleSuccess = async (credentialResponse: any) => {
+        setStatus("Verifying Google profile with server...");
+        try {
+            // Forward the raw Google string token to your updated backend controller
+            const res = await axios.post("http://localhost:5000/api/auth/google", {
+                credential: credentialResponse.credential
+            });
+
+            const token = res.data.data?.accessToken;
+            if (token) {
+                handleAuthSuccess(token, "✅ Google Sign-In verified! Welcome back.");
+            } else {
+                setStatus("❌ Google validation succeeded, but no app token was issued.");
+            }
+        } catch (err: any) {
+            setStatus(`❌ Google Auth Failed: ${err.response?.data?.message || err.message}`);
+        }
+    };
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 font-sans">
@@ -88,6 +107,25 @@ const Login = () => {
                         Sign In
                     </button>
                 </form>
+
+                {/* ─── VISUAL DIVIDER ─── */}
+                <div className="relative flex py-4 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink mx-4 text-gray-400 text-xs font-semibold uppercase tracking-wider">or</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                </div>
+
+                {/* ─── GOOGLE INTEGRATION HUB ─── */}
+                <div className="w-full flex justify-center">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setStatus("❌ Google Authentication Failed client-side")}
+                        useOneTap
+                        shape="circle"
+                        theme="outline"
+                        width="100%" // Matches width constraints gracefully
+                    />
+                </div>
 
                 {/* Status Notification */}
                 {status && (

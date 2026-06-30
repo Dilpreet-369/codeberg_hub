@@ -57,18 +57,7 @@ const Landingpage = () => {
           </Link>
 
           {/* Secondary Action Call: Alternative Google Authentication Placeholder */}
-          <button 
-            onClick={() => console.log("OAuth Redirect Triggered")}
-            className="w-full py-3.5 bg-white border border-gray-300 hover:bg-gray-50 active:scale-[0.99] text-gray-700 font-medium rounded-xl transition text-sm flex items-center justify-center gap-2.5 shadow-sm"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.65l3.15-3.15C17.45 1.68 14.91 1 12 1 7.35 1 3.4 3.65 1.48 7.5l3.78 2.93c.9-2.69 3.43-4.39 6.74-4.39z"/>
-              <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.43h6.46c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.87 3.39-8.48z"/>
-              <path fill="#FBBC05" d="M5.26 14.57a7.15 7.15 0 0 1 0-4.14L1.48 7.5a11.95 11.95 0 0 0 0 9l3.78-2.93z"/>
-              <path fill="#34A353" d="M12 23c3.24 0 5.97-1.08 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.31 0-5.84-1.7-6.74-4.39L1.48 16.88C3.4 20.35 7.35 23 12 23z"/>
-            </svg>
-            Continue with Google
-          </button>
+          
         </div>
       </main>
 

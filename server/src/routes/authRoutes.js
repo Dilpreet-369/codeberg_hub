@@ -4,6 +4,7 @@ import {
   loginUser,
   refreshAccessToken,
   logoutUser,
+  googleLogin
 } from '../controller/auth.controller.js';
 import {
   protectRoute,
@@ -19,7 +20,7 @@ router.post('/logout', logoutUser);
 
 // 2. Token Refresh Endpoint (Uses your custom cookie validator middleware)
 router.post('/refresh-token', verifyRefreshToken, refreshAccessToken);
-
+router.post('/google', googleLogin);
 // 3. Example Protected Route (Just to verify our protectRoute gatekeeper works!)
 router.get('/profile', protectRoute, (req, res) => {
   res.status(200).json({
