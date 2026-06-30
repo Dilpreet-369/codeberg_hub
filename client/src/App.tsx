@@ -1,9 +1,10 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Landingpage"; // Importing your home page from the pages folder
+import Landingpage from "./pages/Landingpage"; // Importing your home page from the pages folder
 import Register from "./pages/Registerpage"; // Importing your register page from the pages folder
 import Login from "./pages/Loginpage"; // Importing your login page from the pages folder
 import Dashboard from "./pages/Dashboard"; // Importing your dashboard page from the pages folder
+import ProtectedRoute from "./components/ProtectedRoute"; // Importing the ProtectedRoute component
 const App = () => {
   return (
     <BrowserRouter>
@@ -13,7 +14,7 @@ const App = () => {
           <Route
             path="/"
             element={
-              <Home />
+              <Landingpage />
             }
           />
 
@@ -22,7 +23,11 @@ const App = () => {
           {/* 3. Login Route */}
           <Route path="/login" element={<Login />} />
           {/* 4. Dashboard Route */}
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
           {/* 5. Fallback Route (Redirects any invalid URLs back to home) */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
