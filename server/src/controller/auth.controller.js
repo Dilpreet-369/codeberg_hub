@@ -63,7 +63,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     const accessToken = generateTokensAndSetCookie(res, user._id);
 
     res.status(200).json({
-      success: true,
+      success: true,  
       data: {
         _id: user._id,
         name: user.name,
