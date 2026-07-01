@@ -129,9 +129,9 @@ const Login = () => {
             variant="glossyBlue"
             size="default"
             className="w-full mt-2"
-            disabled={status?.type === "loading"} // ◄ Prevents double submission while waiting for redirect
+            disabled={status === "loading"} // ◄ Prevents double submission while waiting for redirect
           >
-            {status?.type === "loading" ? (
+            {status === "loading" ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Verifying Account...

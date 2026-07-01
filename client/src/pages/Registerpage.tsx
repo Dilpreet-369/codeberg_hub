@@ -169,7 +169,7 @@ const Register = () => {
             ) : (
               <>
                 <LogIn className="mr-2 h-4 w-4" />
-                Register
+                Register and Sign In
               </>
             )}
           </Button>
@@ -208,14 +208,6 @@ const Register = () => {
                   : "bg-red-50 text-red-700 border-red-200/80"
             }`}
           >
-            {status.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 stroke-[2]" />
-            ) : status.type === "loading" ? (
-              <Loader2 className="w-4 h-4 mt-0.5 shrink-0 stroke-[2] animate-spin" />
-            ) : (
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 stroke-[2]" />
-            )}
-
             <span>{status.text}</span>
           </div>
         )}
