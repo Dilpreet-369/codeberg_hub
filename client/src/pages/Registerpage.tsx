@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button"; // 2. Import the reusable Button component
+import { LogIn, Loader2 } from "lucide-react"; // ◄ Import Loader2 for the spinner animation
 import axios from "axios";
 
 interface StatusState {
@@ -153,12 +154,25 @@ const Register = () => {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md shadow-indigo-200 active:scale-[0.98] transition mt-2 text-base"
+            variant="glossyBlue"
+            size="default"
+            className="w-full mt-2"
+            disabled={status?.type === "loading"} // ◄ Prevents double submission while waiting for redirect
           >
-            Register & Log In
-          </button>
+            {status?.type === "loading" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying Account...
+              </>
+            ) : (
+              <>
+                <LogIn className="mr-2 h-4 w-4" />
+                Register
+              </>
+            )}
+          </Button>
         </form>
 
         {/* Visual Divider */}

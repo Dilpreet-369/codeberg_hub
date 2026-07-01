@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google"; // 1. Import official Google login component
 import axios from "axios";
-
+import { Button } from "@/components/ui/button"; // 2. Import the reusable Button component
+import { LogIn, Loader2 } from "lucide-react" // ◄ Import Loader2 for the spinner animation
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -35,15 +36,15 @@ const Login = () => {
 
       const token = res.data.data?.accessToken;
       if (token) {
-        handleAuthSuccess(token, "✅ Credentials verified! Welcome back.");
+        handleAuthSuccess(token, "Credentials verified! Welcome back.");
       } else {
         setStatus(
-          "❌ Authentication succeeded, but no session token was issued.",
+          "Authentication succeeded, but no session token was issued.",
         );
       }
     } catch (err: any) {
       setStatus(
-        `❌ Access Denied: ${err.response?.data?.message || err.message}`,
+        `Access Denied: ${err.response?.data?.message || err.message}`,
       );
     }
   };
@@ -59,15 +60,15 @@ const Login = () => {
 
       const token = res.data.data?.accessToken;
       if (token) {
-        handleAuthSuccess(token, "✅ Google Sign-In verified! Welcome back.");
+        handleAuthSuccess(token, "Google Sign-In verified! Welcome back.");
       } else {
         setStatus(
-          "❌ Google validation succeeded, but no app token was issued.",
+          "Google validation succeeded, but no app token was issued.",
         );
       }
     } catch (err: any) {
       setStatus(
-        `❌ Google Auth Failed: ${err.response?.data?.message || err.message}`,
+        `Google Auth Failed: ${err.response?.data?.message || err.message}`,
       );
     }
   };
@@ -115,12 +116,33 @@ const Login = () => {
             />
           </div>
 
-          <button
+          {/* <Button
             type="submit"
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-md shadow-indigo-200 active:scale-[0.98] transition mt-2 text-base"
+            icon={LogIn}
+            isLoading={status?.type === "loading"} // Handles the spinning state automatically
+            className="w-full mt-2" // Appends your width and margin to the button layout
           >
             Sign In
-          </button>
+          </Button> */}
+          <Button
+            type="submit"
+            variant="glossyBlue"
+            size="default"
+            className="w-full mt-2"
+            disabled={status?.type === "loading"} // ◄ Prevents double submission while waiting for redirect
+          >
+            {status?.type === "loading" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying Account...
+              </>
+            ) : (
+              <>
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </>
+            )}
+          </Button>
         </form>
 
         {/* ─── VISUAL DIVIDER ─── */}
@@ -137,9 +159,9 @@ const Login = () => {
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() =>
-              setStatus("❌ Google Authentication Failed client-side")
+              setStatus("Google Authentication Failed client-side")
             }
-            // useOneTap    
+            // useOneTap
             shape="circle"
             theme="outline"
             width={360} // Matches width constraints gracefully
@@ -150,7 +172,7 @@ const Login = () => {
         {status && (
           <div
             className={`mt-5 p-3 rounded-lg text-sm font-medium border break-all leading-relaxed ${
-              status.includes("✅")
+              status.includes("")
                 ? "bg-green-50 text-green-700 border-green-200"
                 : "bg-red-50 text-red-700 border-red-200"
             }`}
