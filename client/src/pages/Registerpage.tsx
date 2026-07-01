@@ -1,19 +1,33 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google"; // 1. Import official Google login component
+import { GoogleLogin } from "@react-oauth/google";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import axios from "axios";
+
+interface StatusState {
+  type: "success" | "error" | "loading";
+  text: string;
+}
 
 const Register = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<StatusState | null>(null);
+
+  // Helper to quickly apply status alerts without text parsing loops
+  const updateStatus = (
+    type: "success" | "error" | "loading",
+    text: string,
+  ) => {
+    setStatus({ type, text });
+  };
 
   // Reusable utility function to handle post-authentication state updates and forwarding
-  const handleAuthSuccess = (token: string, message: string) => {
+  const handleAuthSuccess = (token: string, successMessage: string) => {
     localStorage.setItem("authToken", token);
-    setStatus(message);
+    updateStatus("success", successMessage);
 
     setName("");
     setEmail("");
@@ -27,7 +41,7 @@ const Register = () => {
   // ─── TRADITIONAL EMAIL/PASSWORD REGISTRATION ───
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("Creating your secure account...");
+    updateStatus("loading", "Creating your secure account...");
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/register", {
@@ -36,46 +50,48 @@ const Register = () => {
         password,
       });
 
-      // ✅ FIXED: Corrected path mapping to match your backend data structure payload
       const token = res.data.data?.accessToken;
 
       if (token) {
         handleAuthSuccess(
           token,
-          "✅ Account verified! Redirecting to dashboard...",
+          "Account verified! Redirecting to dashboard...",
         );
       } else {
-        setStatus(
-          "❌ Registration completed, but server failed to issue a session token.",
+        updateStatus(
+          "error",
+          "Registration completed, but server failed to issue a session token.",
         );
       }
     } catch (err: any) {
-      setStatus(
-        `❌ Registration Blocked: ${err.response?.data?.message || err.message}`,
+      updateStatus(
+        "error",
+        `Registration Blocked: ${err.response?.data?.message || err.message}`,
       );
     }
   };
 
   // ─── GOOGLE OAUTH CALLBACK HANDLER ───
   const handleGoogleSuccess = async (credentialResponse: any) => {
-    setStatus("Verifying Google profile with server...");
+    updateStatus("loading", "Verifying Google profile with server...");
     try {
-      // Forward the raw Google credential string token to your backend /google route
       const res = await axios.post("http://localhost:5000/api/auth/google", {
         credential: credentialResponse.credential,
       });
 
       const token = res.data.data?.accessToken;
       if (token) {
-        handleAuthSuccess(token, "✅ Google Registration verified! Welcome.");
+        handleAuthSuccess(token, "Google Registration verified! Welcome.");
       } else {
-        setStatus(
-          "❌ Google validation succeeded, but no app token was issued.",
+        updateStatus(
+          "error",
+          "Google validation succeeded, but no app token was issued.",
         );
       }
     } catch (err: any) {
-      setStatus(
-        `❌ Google Auth Failed: ${err.response?.data?.message || err.message}`,
+      updateStatus(
+        "error",
+        `Google Auth Failed: ${err.response?.data?.message || err.message}`,
       );
     }
   };
@@ -145,7 +161,7 @@ const Register = () => {
           </button>
         </form>
 
-        {/* ─── VISUAL DIVIDER ─── */}
+        {/* Visual Divider */}
         <div className="relative flex py-4 items-center">
           <div className="grow border-t border-gray-200"></div>
           <span className="shrink mx-4 text-gray-400 text-xs font-semibold uppercase tracking-wider">
@@ -154,34 +170,43 @@ const Register = () => {
           <div className="grow border-t border-gray-200"></div>
         </div>
 
-        {/* ─── GOOGLE INTEGRATION HUB ─── */}
+        {/* Google Authentication */}
         <div className="w-full flex justify-center">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() =>
-              setStatus("❌ Google Authentication Failed client-side")
+              updateStatus("error", "Google Authentication Failed client-side")
             }
-            // useOneTap
             shape="circle"
             theme="outline"
-            width={360} // Matches width constraints gracefully
+            width={360}
           />
         </div>
 
-        {/* Status Notification */}
+        {/* Structured Vector Status Notification Card */}
         {status && (
           <div
-            className={`mt-5 p-3 rounded-lg text-sm font-medium border break-all leading-relaxed ${
-              status.includes("✅")
-                ? "bg-green-50 text-green-700 border-green-200"
-                : "bg-red-50 text-red-700 border-red-200"
+            className={`mt-5 p-3 rounded-lg text-sm font-medium border break-all leading-relaxed flex items-start gap-2.5 ${
+              status.type === "success"
+                ? "bg-green-50 text-green-700 border-green-200/80"
+                : status.type === "loading"
+                  ? "bg-blue-50 text-blue-700 border-blue-200/80"
+                  : "bg-red-50 text-red-700 border-red-200/80"
             }`}
           >
-            {status}
+            {status.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0 stroke-[2]" />
+            ) : status.type === "loading" ? (
+              <Loader2 className="w-4 h-4 mt-0.5 shrink-0 stroke-[2] animate-spin" />
+            ) : (
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0 stroke-[2]" />
+            )}
+
+            <span>{status.text}</span>
           </div>
         )}
 
-        {/* Visual Anchor to toggle between views */}
+        {/* Routing Anchor */}
         <div className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
           <button
