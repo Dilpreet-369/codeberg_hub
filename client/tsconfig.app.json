@@ -17,6 +17,7 @@
     /* Clean Path Resolution Mapping without deprecated options */
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["vite/client"]
   }
 }

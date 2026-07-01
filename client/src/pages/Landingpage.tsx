@@ -2,10 +2,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"; // Import the reusable Button component
 import { UserPlus, ArrowRight, ShieldCheck } from "lucide-react"; // Import vector icons instead of emojis
-
+import { useTheme } from "@/components/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 const Landingpage = () => {
   const navigate = useNavigate();
-
+  const { theme, toggleTheme } = useTheme();
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans selection:bg-blue-500 selection:text-white antialiased">
       {/* 1. Mobile Top Header Section */}
@@ -24,6 +25,18 @@ const Landingpage = () => {
         </div>
 
         {/* Quick Utility Sign In Link */}
+        <Button
+          onClick={toggleTheme}
+          variant="outline"
+          size="icon"
+          className="rounded-xl border-slate-200"
+        >
+          {theme === "light" ? (
+            <Moon className="h-4 w-4 text-slate-700" />
+          ) : (
+            <Sun className="h-4 w-4 text-amber-400" />
+          )}
+        </Button>
         <Link
           to="/login"
           className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition px-3 py-1.5 rounded-lg hover:bg-blue-50/60"
