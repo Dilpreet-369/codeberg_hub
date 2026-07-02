@@ -12,6 +12,7 @@
   --foreground: #0f172a; 
 }
 
+
 /* 2. Put your dark variables explicitly inside a cascade theme layer */
 @layer theme {
   .dark {
