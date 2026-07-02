@@ -71,7 +71,7 @@ const Login = () => {
 
   return (
     /* Changed: Root bg-transparent works great because index.css body takes over */
-    <div className="flex justify-center items-center min-h-screen bg-transparent p-4 font-sans transition-colors duration-200">
+    <div className="flex justify-center items-center min-h-screen p-4 font-sans transition-colors duration-200 dark:bg-slate-950">
       {/* Changed: Fixed typo. Switched from :dark:bg-gray-800 to dark:bg-slate-900 and dark:border-slate-800 */}
       <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl p-6 shadow-lg border border-transparent dark:border-slate-800/60 transition-colors duration-200">
         {/* Header (Changed: added dark:text-white and dark:text-slate-400) */}

@@ -100,8 +100,8 @@ const Register = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 font-sans">
-      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg  dark:border-slate-800/60 transition-colors duration-200">
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 font-sans dark:bg-slate-950">
+      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg  dark:border-slate-800/60 transition-colors duration-200 dark:bg-slate-900">
         {/* Header */}
         {/* <Button
           onClick={toggleTheme}
@@ -116,10 +116,10 @@ const Register = () => {
           )}
         </Button> */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 tracking-tight">
+          <h2 className="text-2xl font-bold text-gray-800 tracking-tight dark:text-white tracking-tight">
             Create Account
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 mt-1 dark:text-slate-400">
             Join the network securely today
           </p>
         </div>
@@ -127,7 +127,7 @@ const Register = () => {
         {/* Form */}
         <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-slate-300 uppercase tracking-wider">
               Full Name
             </label>
             <input
@@ -136,12 +136,12 @@ const Register = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-base bg-gray-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-700 text-base bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-600 focus:bg-white dark:focus:bg-slate-950 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-slate-300 uppercase tracking-wider">
               Email Address
             </label>
             <input
@@ -150,12 +150,12 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-base bg-gray-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-700 text-base bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-600 focus:bg-white dark:focus:bg-slate-950 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-slate-300 uppercase tracking-wider">
               Password
             </label>
             <input
@@ -164,7 +164,7 @@ const Register = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-base bg-gray-50 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-slate-700 text-base bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-600 focus:bg-white dark:focus:bg-slate-950 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition"
             />
           </div>
 
@@ -238,7 +238,7 @@ const Register = () => {
         )}
 
         {/* Routing Anchor */}
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
           Already have an account?{" "}
           <button
             onClick={() => navigate("/login")}
