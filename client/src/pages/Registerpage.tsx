@@ -116,7 +116,7 @@ const Register = () => {
           )}
         </Button> */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 tracking-tight dark:text-white tracking-tight">
+          <h2 className="text-2xl font-bold text-gray-800  dark:text-white tracking-tight">
             Create Account
           </h2>
           <p className="text-sm text-gray-500 mt-1 dark:text-slate-400">
@@ -127,7 +127,7 @@ const Register = () => {
         {/* Form */}
         <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-slate-300 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-gray-700  dark:text-slate-300 uppercase tracking-wider">
               Full Name
             </label>
             <input
@@ -141,7 +141,7 @@ const Register = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-slate-300 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-gray-700  dark:text-slate-300 uppercase tracking-wider">
               Email Address
             </label>
             <input
@@ -155,7 +155,7 @@ const Register = () => {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider dark:text-slate-300 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wider">
               Password
             </label>
             <input
