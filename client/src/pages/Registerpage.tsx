@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { Button } from "@/components/ui/button"; // 2. Import the reusable Button component
-import { LogIn, Loader2 } from "lucide-react"; // ◄ Import Loader2 for the spinner animation
+import { LogIn, Loader2, Sun, Moon } from "lucide-react"; // ◄ Import Loader2 for the spinner animation
 import axios from "axios";
+import { useTheme } from "@/components/ThemeContext";
 
 interface StatusState {
   type: "success" | "error" | "loading";
@@ -11,6 +12,7 @@ interface StatusState {
 }
 
 const Register = () => {
+  const { theme, toggleTheme } = useTheme(); // Ensure you are using the ThemeProvider correctly
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -99,8 +101,20 @@ const Register = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 font-sans">
-      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg">
+      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-lg  dark:border-slate-800/60 transition-colors duration-200">
         {/* Header */}
+        {/* <Button
+          onClick={toggleTheme}
+          variant="outline"
+          size="icon"
+          className="rounded-xl border-slate-200 dark:border-slate-800 dark:bg-slate-950"
+        >
+          {theme === "light" ? (
+            <Moon className="h-4 w-4 text-slate-700" />
+          ) : (
+            <Sun className="h-4 w-4 text-amber-400" />
+          )}
+        </Button> */}
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight">
             Create Account
@@ -185,7 +199,7 @@ const Register = () => {
         </div>
 
         {/* Google Authentication */}
-        <div className="w-full flex justify-center">
+        {/* <div className="w-full flex justify-center">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={() =>
@@ -193,6 +207,17 @@ const Register = () => {
             }
             shape="circle"
             theme="outline"
+            width={360}
+          />
+        </div> */}
+        <div className="w-full flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() =>
+              updateStatus("error", "Google Authentication Failed client-side")
+            }
+            shape="circle"
+            theme={theme === "dark" ? "filled_blue" : "outline"} // ◄ Pro Tip: Toggles Google theme wrapper layout!
             width={360}
           />
         </div>
