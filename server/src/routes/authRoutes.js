@@ -4,6 +4,7 @@ import {
   loginUser,
   refreshAccessToken,
   logoutUser,
+  completeOnboarding
 } from '../controller/auth.controller.js';
 import {
   protectRoute,
@@ -16,6 +17,7 @@ const router = express.Router();
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
+router.put('/onboard', protectRoute, completeOnboarding);
 
 // 2. Token Refresh Endpoint (Uses your custom cookie validator middleware)
 router.post('/refresh-token', verifyRefreshToken, refreshAccessToken);

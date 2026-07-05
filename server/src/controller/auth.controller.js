@@ -125,3 +125,66 @@ export const logoutUser = asyncHandler(async (req, res) => {
     message: 'Logged out successfully',
   });
 });
+
+export const completeOnboarding = async (req, res) => {
+  try {
+    // 1. Grab the authenticated user's ID from your auth middleware (e.g., protect/verifyToken)
+    const userId = req.user?._id; 
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Access token missing or invalid.",
+      });
+    }
+
+    // 2. Extract the profile fields from the request body
+    const { bio, workOrStudy, interests } = req.body;
+
+    // 3. Find the user and update the fields
+    // We explicitly set isOnboarded to true whether they filled it out or hit "Skip"
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          bio: bio || "",
+          workOrStudy: workOrStudy || "",
+          skills: Array.isArray(interests) ? interests : [],
+          isOnboarded: true, 
+        },
+      },
+      { 
+        new: true,          // Returns the freshly updated document
+        runValidators: true // Ensures schema constraints (like max length) are enforced
+      }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    // 4. Return the updated user object to sync with the frontend state
+    return res.status(200).json({
+      success: true,
+      message: "Onboarding profile synchronization complete.",
+      data: {
+        fullname: updatedUser.fullname,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        bio: updatedUser.bio,
+        workOrStudy: updatedUser.workOrStudy,
+        interests: updatedUser.interests,
+        isOnboarded: updatedUser.isOnboarded,
+      },
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Onboarding Failed: ${error.message}`,
+    });
+  }
+};

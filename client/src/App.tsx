@@ -4,6 +4,7 @@ import Landingpage from "./pages/Landingpage"; // Importing your home page from 
 import Register from "./pages/Registerpage"; // Importing your register page from the pages folder
 import Login from "./pages/Loginpage"; // Importing your login page from the pages folder
 import Dashboard from "./pages/Dashboard"; // Importing your dashboard page from the pages folder
+import OnboardPage from "./pages/OnboardPage"; // Importing your onboarding page from the pages folder
 import ProtectedRoute from "./components/ProtectedRoute"; // Importing the ProtectedRoute component
 const App = () => {
   return (
@@ -17,7 +18,6 @@ const App = () => {
               <Landingpage />
             }
           />
-
           {/* 2. Register Route */}
           <Route path="/register" element={<Register />} />
           {/* 3. Login Route */}
@@ -28,7 +28,9 @@ const App = () => {
               <Dashboard />
             </ProtectedRoute>
           } />
-          {/* 5. Fallback Route (Redirects any invalid URLs back to home) */}
+          {/* 5. Onboarding Route */}
+          <Route path="/onboard" element={<OnboardPage />} />
+          {/* 6. Fallback Route (Redirects any invalid URLs back to home) */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

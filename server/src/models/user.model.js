@@ -37,11 +37,29 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'], // ◄ Strict requirement for MVP
       minlength: [6, 'Password must be at least 6 characters long'],
-      select: false, 
+      select: false,
     },
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    workOrStudy: {
+      type: String,
+      default: '', // e.g., "Student at GNDEC"
+      trim: true,
+    },
+    bio: {
+      type: String,
+      default: '', // Default to empty string so it doesn't break if skipped
+      maxlength: [160, 'Bio cannot exceed 160 characters'],
+    },
+    skills: {
+      type: [String], // An array of strings to store tech stacks like ["React", "C++", "Linux"]
+      default: [],
+    },
+    isOnboarded: {
+      type: Boolean,
+      default: false, // Tracks whether they completed or skipped the onboarding flow screen
     },
   },
   {
@@ -57,7 +75,7 @@ userSchema.pre('save', async function () {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   } catch (error) {
-    throw error; 
+    throw error;
   }
 });
 

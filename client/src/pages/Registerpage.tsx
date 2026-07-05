@@ -35,7 +35,7 @@ const Register = () => {
     setPassword("");
 
     setTimeout(() => {
-      navigate("/dashboard");
+      navigate("/onboard"); // Redirect to onboarding after successful registration
     }, 1000);
   };
 
