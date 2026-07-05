@@ -151,7 +151,7 @@ const OnboardingPage = () => {
             <label className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
               Select Core Interests
             </label>
-            <div className="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto pr-1 py-0.5 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+            <div className="flex flex-wrap gap-1.5 max-h-35 overflow-y-auto pr-1 py-0.5 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
               {POPULAR_INTERESTS.map((tag) => {
                 const isSelected = interests.includes(tag);
                 return (
