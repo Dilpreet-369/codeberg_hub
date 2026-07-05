@@ -2,96 +2,54 @@ import User from '../models/user.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import generateTokensAndSetCookie from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
-import {OAuth2Client} from 'google-auth-library';
 
-const client = new OAuth2Client(process.env.GOOGLE_SERVER_ID);
-
-export const googleLogin = asyncHandler(async (req, res) => {
-  const { credential } = req.body;
-
-  if (!credential) {
-    res.status(400);
-    throw new Error('Google credential token is missing');
-  }
-
-  // 1. Verify the Google ID Token token securely
-  const ticket = await client.verifyIdToken({
-    idToken: credential,
-    audience: process.env.GOOGLE_SERVER_ID,
-  });
-
-  const payload = ticket.getPayload();
-  const { sub: googleId, email, name } = payload;
-
-  // 2. Query for user by googleId or email
-  let user = await User.findOne({ $or: [{ googleId }, { email }] });
-
-  if (user) {
-    // If user exists via email but doesn't have a linked googleId yet, link it now
-    if (!user.googleId) {
-      user.googleId = googleId;
-      await user.save();
-    }
-  } else {
-    // 3. Create a new profile entry if it's their first time signing in
-    // Password requirement is bypassed because this.googleId evaluates true on schema configuration
-    user = await User.create({
-      name,
-      email,
-      googleId,
-      isVerified: true, // Google accounts are pre-verified
-    });
-  }
-
-  // 4. Generate tokens and drop the Refresh Token into an HTTP-only cookie using your helper
-  const accessToken = generateTokensAndSetCookie(res, user._id);
-
-  // 5. Send matching structural data back to your client-side layout
-  res.status(200).json({
-    success: true,
-    data: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      accessToken,
-    },
-  });
-});
-
+// ─── REGISTER CONTROLLER (UPDATED FOR MVP USERNAME) ───
 export const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  // 1. Destructure fullname, username, email, and password from user request payload
+  const { fullname, username, email, password } = req.body;
 
-  // 1. Check if all required fields are provided
-  if (!name || !email || !password) {
+  // 2. Strict verification: Ensure all essential credentials exist
+  if (!fullname || !username || !email || !password) {
     res.status(400);
-    throw new Error('Please provide all required fields');
+    throw new Error('Please provide all required fields (fullname, username, email, password)');
   }
 
-  // 2. Check if user already exists in the database
-  const userExists = await User.findOne({ email });
+  // 3. Prevent Duplication: Check if username OR email is already registered
+  const userExists = await User.findOne({ 
+    $or: [
+      { email: email.toLowerCase() }, 
+      { username: username.toLowerCase() }
+    ] 
+  });
+
   if (userExists) {
     res.status(400);
+    // Explicit condition matching for clearer frontend error response messages
+    if (userExists.username === username.toLowerCase()) {
+      throw new Error('This username is already taken');
+    }
     throw new Error('A user with this email already exists');
   }
 
-  // 3. Create the user (Our Schema pre-save hook handles password hashing!)
+  // 4. Create the user profile inside your MongoDB collection
   const user = await User.create({
-    name,
+    fullname,
+    username,
     email,
     password,
   });
 
   if (user) {
-    // 4. Generate tokens and drop the Refresh Token into an HTTP-only cookie
+    // 5. Generate secure JWT tokens and issue refresh cookie
     const accessToken = generateTokensAndSetCookie(res, user._id);
 
-    // 5. Send successful response with user details and short-term access token
+    // 6. Return response array matching your system layout constraints
     res.status(201).json({
       success: true,
       data: {
         _id: user._id,
-        name: user.name,
+        fullname: user.fullname,
+        username: user.username,
         email: user.email,
         role: user.role,
         accessToken,
@@ -103,6 +61,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── LOGIN CONTROLLER (UPDATED FOR UNIQUE FIELD LOOKUPS) ───
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -111,10 +70,10 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error('Please provide email and password');
   }
 
-  // 1. Find user and explicitly select password field (since select: false is on the schema)
+  // 1. Find user by email and pull down hidden password field configuration
   const user = await User.findOne({ email }).select('+password');
 
-  // 2. Verify user exists and the password matches via our Schema Instance Method
+  // 2. Validate user document existence and password alignment via instance helper methods
   if (user && (await user.comparePassword(password))) {
     const accessToken = generateTokensAndSetCookie(res, user._id);
 
@@ -122,7 +81,8 @@ export const loginUser = asyncHandler(async (req, res) => {
       success: true,  
       data: {
         _id: user._id,
-        name: user.name,
+        fullname: user.fullname,
+        username: user.username,
         email: user.email,
         role: user.role,
         accessToken,
@@ -134,8 +94,8 @@ export const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
+// ─── REFRESH TOKEN CONTROLLER (UNCHANGED CORE IMPLEMENTATION) ───
 export const refreshAccessToken = asyncHandler(async (req, res) => {
-  // req.userId is passed down smoothly by your verifyRefreshToken middleware
   const user = await User.findById(req.userId);
 
   if (!user) {
@@ -143,7 +103,6 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  // Generate a brand new short-term access token
   const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
   });
@@ -154,11 +113,11 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   });
 });
 
+// ─── LOGOUT CONTROLLER (UNCHANGED COOKIE TERMINATION) ───
 export const logoutUser = asyncHandler(async (req, res) => {
-  // Erase the cookie from the client's browser profile instantly
   res.cookie('refreshToken', '', {
     httpOnly: true,
-    expires: new Date(0), // Sets expiration to a past date, wiping it out instantly
+    expires: new Date(0), 
   });
 
   res.status(200).json({

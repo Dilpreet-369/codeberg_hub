@@ -1,23 +1,22 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import "./index.css";
 import { ThemeProvider } from "./components/ThemeContext.tsx";
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import "./index.css";
 
-if (!googleClientId) {
-  console.error(
-    "Critical Error: VITE_GOOGLE_CLIENT_ID is missing from your frontend .env file!",
+// Safely grab the root element outside the render cycle
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error(
+    "Critical Error: Failed to find the root element. Ensure index.html has <div id=\"root\"></div>",
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
-      <GoogleOAuthProvider clientId={googleClientId}>
-        <App />
-      </GoogleOAuthProvider>
+      <App />
     </ThemeProvider>
   </React.StrictMode>,
 );
