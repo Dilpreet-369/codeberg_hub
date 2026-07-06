@@ -62,7 +62,7 @@ const Homepage = () => {
       {/* ─── TOP HEADER / STICKY SEARCH BAR (Matches image_ebb3aa.png Top Shelf) ─── */}
       <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-2 flex items-center gap-3">
         {/* User Mini Avatar Profile Trigger */}
-        <div className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden flex-shrink-0 cursor-pointer border border-zinc-300 dark:border-zinc-600">
+        <div className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden shrink-0 cursor-pointer border border-zinc-300 dark:border-zinc-600">
           <div className="w-full h-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-xs font-bold text-white">
             DS
           </div>
@@ -150,7 +150,7 @@ const PostCard = ({ post }: { post: PostData }) => {
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight hover:underline cursor-pointer">
               {post.author.fullname}
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[240px]">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-60">
               {post.author.roleOrHeadline}
             </p>
             <div className="flex items-center gap-1 text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
@@ -234,7 +234,7 @@ const BottomNavItem = ({ icon, label, active, onClick, badgeCount }: NavItemProp
     <div className="relative">
       {icon}
       {badgeCount && badgeCount > 0 && (
-        <span className="absolute -top-1.5 -right-2 bg-red-500 text-white font-bold text-[9px] h-3.5 min-w-[14px] px-0.5 rounded-full flex items-center justify-center border border-white dark:border-zinc-900">
+        <span className="absolute -top-1.5 -right-2 bg-red-500 text-white font-bold text-[9px] h-3.5 min-w-3.5 px-0.5 rounded-full flex items-center justify-center border border-white dark:border-zinc-900">
           {badgeCount}
         </span>
       )}
