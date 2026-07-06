@@ -31,7 +31,7 @@ const Login = () => {
     setPassword("");
 
     setTimeout(() => {
-      navigate("/dashboard");
+      navigate("/home"); // Redirect to the homepage after a brief delay
     }, 1000);
   };
 

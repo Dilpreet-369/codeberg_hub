@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Landingpage from "./pages/Landingpage"; // Importing your home page from the pages folder
 import Register from "./pages/Registerpage"; // Importing your register page from the pages folder
 import Login from "./pages/Loginpage"; // Importing your login page from the pages folder
-import Dashboard from "./pages/Dashboard"; // Importing your dashboard page from the pages folder
+import Homepage from "./pages/Homepage"; // Importing your dashboard page from the pages folder
 import OnboardPage from "./pages/OnboardPage"; // Importing your onboarding page from the pages folder
 import ProtectedRoute from "./components/ProtectedRoute"; // Importing the ProtectedRoute component
 const App = () => {
@@ -22,10 +22,10 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           {/* 3. Login Route */}
           <Route path="/login" element={<Login />} />
-          {/* 4. Dashboard Route */}
-          <Route path="/dashboard" element={
+          {/* 4. Homepage Route */}
+          <Route path="/home" element={
             <ProtectedRoute>
-              <Dashboard />
+              <Homepage />
             </ProtectedRoute>
           } />
           {/* 5. Onboarding Route */}

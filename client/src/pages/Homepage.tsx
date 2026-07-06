@@ -27,7 +27,7 @@ const INITIAL_POSTS = [
     }
 ];
 
-const Dashboard = () => {
+const Homepage = () => {
     const [posts, setPosts] = useState(INITIAL_POSTS);
     const [newPostText, setNewPostText] = useState("");
 
@@ -203,4 +203,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default Homepage;

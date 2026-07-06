@@ -154,7 +154,7 @@ export const completeOnboarding = async (req, res) => {
         },
       },
       { 
-        new: true,          // Returns the freshly updated document
+        returnDocument: 'after',          // Returns the freshly updated document
         runValidators: true // Ensures schema constraints (like max length) are enforced
       }
     );
