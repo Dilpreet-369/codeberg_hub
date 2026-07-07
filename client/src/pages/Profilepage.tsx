@@ -5,7 +5,6 @@ import {
   ArrowLeft, Settings, Camera, Edit2, Plus, 
   Globe, MoreHorizontal, Eye, Star, Loader2, User 
 } from "lucide-react";
-
 // Interface representing the user data stored in your MongoDB Schema
 interface UserProfileData {
   fullname: string;
@@ -96,7 +95,7 @@ const ProfilePage = () => {
             @{profile.username}
           </span>
         </div>
-        <button className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition bg-transparent border-none cursor-pointer">
+        <button className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition bg-transparent border-none cursor-pointer" onClick={() => navigate("/settings")}>
           <Settings className="h-5 w-5" />
         </button>
       </header>

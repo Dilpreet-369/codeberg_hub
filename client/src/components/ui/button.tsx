@@ -10,6 +10,8 @@ const buttonVariants = cva(
       variant: {
         glossyBlue:
           "text-white rounded-xl bg-linear-to-b from-[#6D7BFF] via-[#5C6BFC] to-[#4F59E9] border border-[#4F59E9] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),_0_4px_12px_rgba(79,89,233,0.3)] hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),_0_6px_16px_rgba(79,89,233,0.4)] active:scale-[0.98] active:brightness-95",
+        glossyRed:
+          "text-white rounded-xl bg-linear-to-b from-[#EF4444] via-[#DC2626] to-[#B91C1C] border border-[#B91C1C] shadow-[inset_0_1px_0_rgba(255,255,255,0.4),_0_4px_12px_rgba(220,38,38,0.3)] hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),_0_6px_16px_rgba(220,38,38,0.4)] active:scale-[0.98] active:brightness-95",
         glossyWhite:
           "text-slate-800 rounded-xl bg-linear-to-b from-white via-slate-50 to-slate-100/90 border border-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),_0_2px_8px_rgba(0,0,0,0.04)] hover:bg-slate-50 hover:border-slate-300 hover:shadow-[inset_0_1px_0_rgba(255,255,255,1),_0_4px_12px_rgba(0,0,0,0.06)] active:scale-[0.98] active:bg-slate-100",
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
