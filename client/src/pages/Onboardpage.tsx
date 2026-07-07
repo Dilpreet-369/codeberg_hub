@@ -61,7 +61,7 @@ const Onboardingpage = () => {
       updateStatus("success", successMsg);
       
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/home");
       }, 1000);
 
     } catch (err: any) {
