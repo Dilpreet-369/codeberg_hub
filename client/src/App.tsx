@@ -4,7 +4,8 @@ import Landingpage from "./pages/Landingpage"; // Importing your home page from 
 import Register from "./pages/Registerpage"; // Importing your register page from the pages folder
 import Login from "./pages/Loginpage"; // Importing your login page from the pages folder
 import Homepage from "./pages/Homepage"; // Importing your dashboard page from the pages folder
-import OnboardPage from "./pages/OnboardPage"; // Importing your onboarding page from the pages folder
+import Onboardpage from "./pages/Onboardpage"; // Importing your onboarding page from the pages folder
+import ProfilePage from "./pages/Profilepage"; // Importing your profile page from the pages folder
 import ProtectedRoute from "./components/ProtectedRoute"; // Importing the ProtectedRoute component
 const App = () => {
   return (
@@ -12,24 +13,37 @@ const App = () => {
       <div className="min-h-screen bg-gray-100 font-sans">
         <Routes>
           {/* 1. Default Route (Home View) */}
-          <Route
-            path="/"
-            element={
-              <Landingpage />
-            }
-          />
+          <Route path="/" element={<Landingpage />} />
           {/* 2. Register Route */}
           <Route path="/register" element={<Register />} />
           {/* 3. Login Route */}
           <Route path="/login" element={<Login />} />
           {/* 4. Homepage Route */}
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <Homepage />
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Homepage />
+              </ProtectedRoute>
+            }
+          />
           {/* 5. Onboarding Route */}
-          <Route path="/onboard" element={<OnboardPage />} />
+          <Route
+            path="/onboard"
+            element={
+              <ProtectedRoute>
+                <Onboardpage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
           {/* 6. Fallback Route (Redirects any invalid URLs back to home) */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

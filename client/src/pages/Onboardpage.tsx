@@ -14,7 +14,7 @@ const POPULAR_INTERESTS = [
   "Python", "C++", "Linux", "Docker", "Cybersecurity"
 ];
 
-const OnboardingPage = () => {
+const Onboardingpage = () => {
   const navigate = useNavigate();
   const [bio, setBio] = useState("");
   const [workOrStudy, setWorkOrStudy] = useState("");
@@ -215,4 +215,4 @@ const OnboardingPage = () => {
   );
 };
 
-export default OnboardingPage;
+export default Onboardingpage;
