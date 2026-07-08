@@ -7,6 +7,7 @@ import Homepage from "./pages/Homepage"; // Importing your dashboard page from t
 import Onboardpage from "./pages/Onboardpage"; // Importing your onboarding page from the pages folder
 import ProfilePage from "./pages/Profilepage"; // Importing your profile page from the pages folder
 import ProtectedRoute from "./components/ProtectedRoute"; // Importing the ProtectedRoute component
+import PostPage from "./pages/Postpage"; // Importing the PostPage component
 import Settingspage from "./pages/Settingspage";
 const App = () => {
   return (
@@ -50,6 +51,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <Settingspage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/post"
+            element={
+              <ProtectedRoute>
+                <PostPage />
               </ProtectedRoute>
             }
           />

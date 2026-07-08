@@ -130,7 +130,7 @@ const Homepage = () => {
           icon={<SquarePlus className="h-5 w-5" />}
           label="Post"
           active={activeTab === "post"}
-          onClick={() => setActiveTab("post")}
+          onClick={() => navigate("/post")} // Navigates to the post creation page
         />
         <BottomNavItem
           icon={<Bell className="h-5 w-5" />}

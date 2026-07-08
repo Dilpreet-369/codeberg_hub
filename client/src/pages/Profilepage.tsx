@@ -5,6 +5,7 @@ import {
   ArrowLeft, Settings, Camera, Edit2, Plus, 
   Globe, MoreHorizontal, Eye, Star, Loader2, User 
 } from "lucide-react";
+import { fetchUserProfile } from "@/utils/Fetchprofile";
 // Interface representing the user data stored in your MongoDB Schema
 interface UserProfileData {
   fullname: string;
@@ -21,39 +22,9 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        
-        if (!token) {
-          setError("No authentication token found. Please log in.");
-          setLoading(false);
-          return;
-        }
-
-        // Fetching from your user endpoint that parses the JWT token payload
-        const res = await axios.get("http://localhost:5000/api/users/me", {
-          headers: {
-            Authorization: `Bearer ${token}` // Passes through your protect route middleware
-          }
-        });
-
-        // Match your server response structure (commonly res.data or res.data.data)
-        if (res.data?.success) {
-          setProfile(res.data.data);
-        } else {
-          setProfile(res.data); 
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to establish synchronization with the server.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
+ useEffect(() => {
+  fetchUserProfile(setProfile, setLoading, setError);
+}, []);
 
   // Full-screen loading feedback matching the minimalist app aesthetic
   if (loading) {
