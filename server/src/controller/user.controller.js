@@ -43,7 +43,7 @@ export const createPost = asyncHandler(async (req, res) => {
 
 export const getAllPosts = asyncHandler(async (req, res) => {
   // 1. Pass { author: req.user._id } to isolate ONLY your posts on this route
-  const posts = await Post.find({ author: req.user._id })
+  const posts = await Post.find({})
     .populate('author', 'fullname username profilePic roleOrHeadline')
     .sort({ createdAt: -1 });
 
