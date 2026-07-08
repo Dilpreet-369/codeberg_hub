@@ -69,7 +69,7 @@ const PostPage = () => {
     try {
       const token = localStorage.getItem("authToken");
       await axios.post(
-        "http://localhost:5000/api/posts/create",
+        "http://localhost:5000/api/users/posts",
         { content },
         { headers: { Authorization: `Bearer ${token}` } },
       );
