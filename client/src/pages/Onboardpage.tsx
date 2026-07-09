@@ -49,7 +49,7 @@ const Onboardingpage = () => {
       const token = localStorage.getItem("authToken");
       
       await axios.put(
-        "http://localhost:5000/api/auth/onboard", 
+        "https://codeberg-hub.onrender.com/api/auth/onboard", 
         payload,
         {
           headers: {

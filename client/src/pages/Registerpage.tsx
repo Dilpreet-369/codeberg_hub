@@ -46,7 +46,7 @@ const Register = () => {
 
     try {
       // Updated payload fields to match your exact backend destination expectation
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
+      const res = await axios.post("https://codeberg-hub.onrender.com/api/auth/register", {
         fullname,
         username,
         email,

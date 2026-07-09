@@ -39,7 +39,7 @@ const Homepage = () => {
         const token = localStorage.getItem("authToken");
 
         // 2. Pass it inside the headers config object!
-        const res = await axios.get("http://localhost:5000/api/users/posts", {
+        const res = await axios.get("https://codeberg-hub.onrender.com/api/users/posts", {
           headers: {
             Authorization: `Bearer ${token}`, // ◄ THIS IS CRITICAL
           },

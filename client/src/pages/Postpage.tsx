@@ -97,7 +97,7 @@ const PostPage = () => {
       }
 
       await axios.post(
-        "http://localhost:5000/api/users/posts",
+        "https://codeberg-hub.onrender.com/api/users/posts",
         submissionForm,
         { 
           headers: { 
