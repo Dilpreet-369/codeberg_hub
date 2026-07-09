@@ -1,7 +1,5 @@
 import { Globe, MoreVertical, ThumbsUp, MessageSquare, Share2, Send } from "lucide-react";
-// import { getInitials } from "../utils/stringUtils"; // Import your shared helper
 
-// Define the shape of your incoming data structure 
 export interface PostData {
   _id: string;
   content: string;
@@ -16,7 +14,6 @@ export interface PostData {
   };
 }
 
-// Small inner helper for the action pipeline triggers
 const ActionButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
   <button className="flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 active:scale-[0.98] transition cursor-pointer bg-transparent border-none">
     {icon}
@@ -25,19 +22,22 @@ const ActionButton = ({ icon, label }: { icon: React.ReactNode; label: string })
 );
 
 export const PostCard = ({ post }: { post: PostData }) => {
+  
+  // ─── MEDIA RECOGNITION ENGINE ───
+  // Scans the asset link for common video extensions (case-insensitive)
+  const isVideo = post.imageUrl?.match(/\.(mp4|webm|ogg|mov|mkv)$/i);
+
   return (
     <div className="bg-white dark:bg-zinc-900 border-y sm:border border-zinc-200 dark:border-zinc-800/80 p-4 transition-colors duration-200">
       
       {/* Header Profile Frame Row */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5">
-          
-          {/* Fallback Initials Display Setup */}
           <div className="h-10 w-10 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center font-bold text-sm text-white shadow-xs overflow-hidden select-none shrink-0">
             {post.author.profilePic ? (
               <img src={post.author.profilePic} alt={post.author.fullname} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-xs">{post.author.fullname.charAt(0)}</span> // ◄ Dynamic letter tracking activated
+              <span className="text-xs">{post.author.fullname.charAt(0)}</span>
             )}
           </div>
 
@@ -66,15 +66,28 @@ export const PostCard = ({ post }: { post: PostData }) => {
         {post.content}
       </div>
 
-      {/* Conditional Attachment Frame */}
+      {/* ─── STYLISH CONDITIONAL MEDIA ATTACHMENT FRAME ─── */}
       {post.imageUrl && (
-        <div className="my-3 -mx-4 sm:mx-0 overflow-hidden bg-zinc-100 dark:bg-zinc-950 border-y sm:border border-zinc-200/60 dark:border-zinc-800/60">
-          <img
-            src={post.imageUrl}
-            alt="Shared Graphic"
-            className="w-full h-auto object-cover max-h-72"
-            loading="lazy"
-          />
+        <div className="my-3 -mx-4 sm:mx-0 overflow-hidden bg-zinc-50 dark:bg-zinc-950 sm:rounded-xl border-y sm:border border-zinc-200/60 dark:border-zinc-800/60 shadow-inner flex items-center justify-center">
+          {isVideo ? (
+            <video
+              src={post.imageUrl}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full max-h-105 bg-black/90 dark:bg-zinc-950 object-contain block focus:outline-hidden"
+              style={{ contentVisibility: 'auto' }}
+            >
+              Your browser does not support the video playback stream.
+            </video>
+          ) : (
+            <img
+              src={post.imageUrl}
+              alt="Shared Graphic"
+              className="w-full h-auto object-cover max-h-96"
+              loading="lazy"
+            />
+          )}
         </div>
       )}
 
