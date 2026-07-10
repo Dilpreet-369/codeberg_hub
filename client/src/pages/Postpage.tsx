@@ -24,7 +24,7 @@ interface UserContextState {
 const PostPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null); // ◄ Link reference directly targeting file type input element
-  
+
   const [content, setContent] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -63,7 +63,7 @@ const PostPage = () => {
       </div>
     );
   }
-  
+
   if (error || !user) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4 text-center">
@@ -86,26 +86,35 @@ const PostPage = () => {
 
     try {
       const token = localStorage.getItem("authToken");
-      
+
       // ─── UPGRADED PACKAGING PAYLOAD: FORMDATA ───
       const submissionForm = new FormData();
       submissionForm.append("content", content);
-      
+
       if (mediaFile) {
         // Key match must align key-name identical to upload.single('image') inside backend router layer strings
         submissionForm.append("image", mediaFile);
       }
-
+      //  FIXED & RESILIENT WAY:
       await axios.post(
-        "https://codeberg-hub.onrender.com/api/users/posts",
+        "/users/posts", // Relying on the global baseURL we set in main.tsx
         submissionForm,
-        { 
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data" // Crucial header key identifier tells engine how to chunk payload binary boundaries
-          } 
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // No manual Authorization string needed!
+          },
         },
       );
+      // await axios.post(
+        
+      //   submissionForm,
+      //   {
+      //     headers: {
+      //       Authorization: `Bearer ${token}`,
+      //       "Content-Type": "multipart/form-data", // Crucial header key identifier tells engine how to chunk payload binary boundaries
+      //     },
+      //   },
+      // );
 
       navigate(-1);
     } catch (error) {
@@ -174,9 +183,17 @@ const PostPage = () => {
           {previewUrl && mediaFile && (
             <div className="relative rounded-lg overflow-hidden bg-zinc-50 dark:bg-zinc-900 max-h-64 border border-zinc-200 dark:border-zinc-800 shadow-xs group">
               {mediaFile.type.startsWith("video/") ? (
-                <video src={previewUrl} className="w-full max-h-64 object-contain" controls />
+                <video
+                  src={previewUrl}
+                  className="w-full max-h-64 object-contain"
+                  controls
+                />
               ) : (
-                <img src={previewUrl} alt="Upload workspace snapshot preview" className="w-full max-h-64 object-contain mx-auto" />
+                <img
+                  src={previewUrl}
+                  alt="Upload workspace snapshot preview"
+                  className="w-full max-h-64 object-contain mx-auto"
+                />
               )}
               <button
                 type="button"
@@ -208,32 +225,41 @@ const PostPage = () => {
               accept="image/*,video/*"
               className="hidden"
             />
-            
+
             {/* Image Upload Trigger Anchor Button */}
-            <button 
+            <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="p-1 hover:text-indigo-500 dark:hover:text-indigo-400 transition bg-transparent border-none cursor-pointer"
             >
               <Image className="h-5 w-5 stroke-[1.75]" />
             </button>
-            <button 
+            <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="p-1 hover:text-indigo-500 dark:hover:text-indigo-400 transition bg-transparent border-none cursor-pointer"
             >
               <Video className="h-5 w-5 stroke-[1.75]" />
             </button>
-            <button type="button" className="p-1 hover:text-indigo-500 dark:hover:text-indigo-400 transition bg-transparent border-none cursor-pointer">
+            <button
+              type="button"
+              className="p-1 hover:text-indigo-500 dark:hover:text-indigo-400 transition bg-transparent border-none cursor-pointer"
+            >
               <Calendar className="h-5 w-5 stroke-[1.75]" />
             </button>
-            <button type="button" className="p-1 hover:text-indigo-500 dark:hover:text-indigo-400 transition bg-transparent border-none cursor-pointer">
+            <button
+              type="button"
+              className="p-1 hover:text-indigo-500 dark:hover:text-indigo-400 transition bg-transparent border-none cursor-pointer"
+            >
               <MoreHorizontal className="h-5 w-5 stroke-[1.75]" />
             </button>
           </div>
 
           <div className="flex items-center gap-3 text-zinc-400">
-            <button type="button" className="p-1 hover:text-zinc-600 dark:hover:text-zinc-300 transition bg-transparent border-none cursor-pointer">
+            <button
+              type="button"
+              className="p-1 hover:text-zinc-600 dark:hover:text-zinc-300 transition bg-transparent border-none cursor-pointer"
+            >
               <Keyboard className="h-5 w-5 stroke-[1.5]" />
             </button>
           </div>

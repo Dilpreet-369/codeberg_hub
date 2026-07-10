@@ -7,6 +7,7 @@ import axios from 'axios';
 
 // This forces ALL axios requests to pass credentials automatically
 axios.defaults.withCredentials = true;
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 // Safely grab the root element outside the render cycle
 const rootElement = document.getElementById("root");
 

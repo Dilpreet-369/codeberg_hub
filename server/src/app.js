@@ -11,12 +11,12 @@ const app = express();
 // Allowing your Vite frontend port explicitly is highly recommended
 app.use(
   cors({
-    origin: 'https://codeberg-hub.vercel.app', // Add your frontend URL here
+    origin: ['http://localhost:5173', 'https://codeberg-hub.vercel.app'], // Add your frontend URL here
     credentials: true, // Allows frontend to pass cookies/headers if needed later
   }),
 );
 
-// Parsing middleware for raw JSON request payloads
+// Parsing middleware for raw JSON request payloads 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

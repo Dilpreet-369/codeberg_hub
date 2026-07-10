@@ -40,7 +40,7 @@ const Login = () => {
     updateStatus("loading", "Verifying your credentials...");
 
     try {
-      const res = await axios.post("https://codeberg-hub.onrender.com/api/auth/login", {
+      const res = await axios.post("/auth/login", {
         email,
         password,
       });
