@@ -3,7 +3,10 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { ThemeProvider } from "./components/ThemeContext.tsx";
 import "./index.css";
+import axios from 'axios';
 
+// This forces ALL axios requests to pass credentials automatically
+axios.defaults.withCredentials = true;
 // Safely grab the root element outside the render cycle
 const rootElement = document.getElementById("root");
 
