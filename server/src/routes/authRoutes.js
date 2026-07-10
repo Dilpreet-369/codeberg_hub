@@ -8,7 +8,6 @@ import {
 } from '../controller/auth.controller.js';
 import {
   protectRoute,
-  verifyRefreshToken,
 } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -19,8 +18,8 @@ router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.put('/onboard', protectRoute, completeOnboarding);
 
-// 2. Token Refresh Endpoint (Uses your custom cookie validator middleware)
-router.post('/refresh-token', verifyRefreshToken, refreshAccessToken);
+// // 2. Token Refresh Endpoint (Uses your custom cookie validator middleware)
+// router.post('/refresh-token', verifyRefreshToken, refreshAccessToken);
 
 // 3. Protected Route (Verifies that our protectRoute gatekeeper works!)
 router.get('/profile', protectRoute, (req, res) => {
