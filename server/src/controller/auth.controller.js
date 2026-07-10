@@ -188,32 +188,3 @@ export const completeOnboarding = async (req, res) => {
     });
   }
 };
-
-// export const updateOnboarding = asyncHandler(async (req, res) => {
-//   const { bio, workOrStudy, interests } = req.body;
-
-//   // Option validation logic matching your registration guidelines
-//   const updatedUser = await User.findByIdAndUpdate(
-//     req.user._id,
-//     {
-//       $set: {
-//         bio,
-//         workOrStudy,
-//         interests,
-//         isOnboarded: true, // Flips flag so frontend skips the onboarding screen next time
-//       },
-//     },
-//     { returnDocument: 'after', runValidators: true } // Production modern Mongoose options
-//   );
-
-//   if (!updatedUser) {
-//     res.status(404);
-//     throw new Error('Unable to sync onboarding data: User account not found');
-//   }
-
-//   res.status(200).json({
-//     success: true,
-//     message: 'Onboarding data synchronized successfully',
-//     data: updatedUser,
-//   });
-// });

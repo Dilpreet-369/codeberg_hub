@@ -19,7 +19,7 @@ const generateTokensAndSetCookie = (res, userId) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true, // Prevents JavaScript from reading the token (Blocks XSS attacks)
     secure: process.env.NODE_ENV === 'production', // Only sends via HTTPS in production
-    sameSite: 'strict', // Protects against CSRF forging attacks
+    sameSite: 'none', // Protects against CSRF forging attacks
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds matching your .env
   });
 
