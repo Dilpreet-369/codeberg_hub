@@ -85,40 +85,22 @@ const PostPage = () => {
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("authToken");
-
-      // ─── UPGRADED PACKAGING PAYLOAD: FORMDATA ───
       const submissionForm = new FormData();
       submissionForm.append("content", content);
-
       if (mediaFile) {
-        // Key match must align key-name identical to upload.single('image') inside backend router layer strings
         submissionForm.append("image", mediaFile);
       }
-      //  FIXED & RESILIENT WAY:
-      await axios.post(
-        "/users/posts", // Relying on the global baseURL we set in main.tsx
-        submissionForm,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data", // No manual Authorization string needed!
-          },
+
+      // CLEAN & UNIFIED: No local storage tokens, no headers object needed!
+      await axios.post("/users/posts", submissionForm, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
-      // await axios.post(
-        
-      //   submissionForm,
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${token}`,
-      //       "Content-Type": "multipart/form-data", // Crucial header key identifier tells engine how to chunk payload binary boundaries
-      //     },
-      //   },
-      // );
+      });
 
       navigate(-1);
     } catch (error) {
-      console.error("Post creation execution failure", error);
+      console.error("Post creation failure", error);
     } finally {
       setIsSubmitting(false);
     }
