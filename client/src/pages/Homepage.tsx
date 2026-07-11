@@ -35,15 +35,8 @@ const Homepage = () => {
         setLoading(true);
         setError(null);
 
-        // 1. Grab the token from storage
-        const token = localStorage.getItem("authToken");
-
         // 2. Pass it inside the headers config object!
-        const res = await axios.get("/users/posts", {
-          headers: {
-            Authorization: `Bearer ${token}`, // ◄ THIS IS CRITICAL
-          },
-        });
+        const res = await axios.get("/users/posts");
 
         if (res.data?.success) {
           setPosts(res.data.data);

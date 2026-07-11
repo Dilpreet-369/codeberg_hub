@@ -45,17 +45,10 @@ const Onboardingpage = () => {
   }, successMsg: string) => {
     updateStatus("loading", "Synchronizing developer profile map...");
     
-    try {
-      const token = localStorage.getItem("authToken");
-      
+    try {      
       await axios.put(
-        "/auth/onboard", 
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}` // Passes through protectRoute
-          }
-        }
+        "/auth/onboard" ,
+        payload
       );
 
       updateStatus("success", successMsg);

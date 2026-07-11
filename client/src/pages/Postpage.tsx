@@ -92,11 +92,7 @@ const PostPage = () => {
       }
 
       // CLEAN & UNIFIED: No local storage tokens, no headers object needed!
-      await axios.post("/users/posts", submissionForm, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.post("/users/posts", submissionForm);
 
       navigate(-1);
     } catch (error) {
