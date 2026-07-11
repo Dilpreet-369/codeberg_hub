@@ -15,6 +15,6 @@ const generateTokensAndSetCookie = (res, userId) => {
   });
 
   return refreshToken;
-};
+};  
 
 export default generateTokensAndSetCookie;

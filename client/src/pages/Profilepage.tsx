@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { 
   ArrowLeft, Settings, Camera, Edit2, Plus, 
@@ -18,6 +18,7 @@ interface UserProfileData {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { username } = useParams<{ username: string }>();
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
