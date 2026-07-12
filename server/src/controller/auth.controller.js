@@ -3,18 +3,15 @@ import asyncHandler from '../utils/asyncHandler.js';
 import generateTokensAndSetCookie from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
 
-// ─── REGISTER CONTROLLER (UPDATED FOR MVP USERNAME) ───
+// ─── REGISTER CONTROLLER ───
 export const registerUser = asyncHandler(async (req, res) => {
-  // 1. Destructure fullname, username, email, and password from user request payload
   const { fullname, username, email, password } = req.body;
 
-  // 2. Strict verification: Ensure all essential credentials exist
   if (!fullname || !username || !email || !password) {
     res.status(400);
-    throw new Error('Please provide all required fields (fullname, username, email, password)');
+    throw new Error('Please provide all required fields');
   }
 
-  // 3. Prevent Duplication: Check if username OR email is already registered
   const userExists = await User.findOne({ 
     $or: [
       { email: email.toLowerCase() }, 
@@ -24,14 +21,12 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   if (userExists) {
     res.status(400);
-    // Explicit condition matching for clearer frontend error response messages
     if (userExists.username === username.toLowerCase()) {
       throw new Error('This username is already taken');
     }
     throw new Error('A user with this email already exists');
   }
 
-  // 4. Create the user profile inside your MongoDB collection
   const user = await User.create({
     fullname,
     username,
@@ -40,10 +35,10 @@ export const registerUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
-    // 5. Generate secure JWT tokens and issue refresh cookie
-    const accessToken = generateTokensAndSetCookie(res, user._id);
+    // ✅ This sets the httpOnly cookie - THAT'S IT, WE'RE DONE WITH TOKENS
+    generateTokensAndSetCookie(res, user._id);
 
-    // 6. Return response array matching your system layout constraints
+    // ✅ NEVER send the token in the response body
     res.status(201).json({
       success: true,
       data: {
@@ -51,8 +46,7 @@ export const registerUser = asyncHandler(async (req, res) => {
         fullname: user.fullname,
         username: user.username,
         email: user.email,
-        role: user.role,
-        accessToken,
+        isOnboarded: user.isOnboarded || false,
       },
     });
   } else {
@@ -61,7 +55,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// ─── LOGIN CONTROLLER (UPDATED FOR UNIQUE FIELD LOOKUPS) ───
+// ─── LOGIN CONTROLLER ───
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -70,13 +64,13 @@ export const loginUser = asyncHandler(async (req, res) => {
     throw new Error('Please provide email and password');
   }
 
-  // 1. Find user by email and pull down hidden password field configuration
   const user = await User.findOne({ email }).select('+password');
 
-  // 2. Validate user document existence and password alignment via instance helper methods
   if (user && (await user.comparePassword(password))) {
-    const accessToken = generateTokensAndSetCookie(res, user._id);
+    // ✅ This sets the httpOnly cookie
+    generateTokensAndSetCookie(res, user._id);
 
+    // ✅ NEVER send the token in the response body
     res.status(200).json({
       success: true,  
       data: {
@@ -84,8 +78,7 @@ export const loginUser = asyncHandler(async (req, res) => {
         fullname: user.fullname,
         username: user.username,
         email: user.email,
-        role: user.role,
-        accessToken,
+        isOnboarded: user.isOnboarded || false,
       },
     });
   } else {
@@ -94,7 +87,7 @@ export const loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-// ─── REFRESH TOKEN CONTROLLER (UNCHANGED CORE IMPLEMENTATION) ───
+// ─── REFRESH TOKEN CONTROLLER ───
 export const refreshAccessToken = asyncHandler(async (req, res) => {
   const user = await User.findById(req.userId);
 
@@ -103,21 +96,44 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
-  const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+  // ✅ Generate NEW access token and set it as httpOnly cookie
+  const accessToken = jwt.sign(
+    { id: user._id }, 
+    process.env.ACCESS_TOKEN_SECRET, 
+    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
+  );
+
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',  
+    sameSite: 'lax',
+    maxAge: 15 * 60 * 1000, // 15 minutes
+    path: '/',
   });
 
   res.status(200).json({
     success: true,
-    accessToken,
+    message: 'Token refreshed',
   });
 });
 
-// ─── LOGOUT CONTROLLER (UNCHANGED COOKIE TERMINATION) ───
+// ─── LOGOUT CONTROLLER ───
 export const logoutUser = asyncHandler(async (req, res) => {
+  // ✅ Clear BOTH cookies
+  res.cookie('accessToken', '', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    expires: new Date(0),
+    path: '/',
+  });
+
   res.cookie('refreshToken', '', {
     httpOnly: true,
-    expires: new Date(0), 
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    expires: new Date(0),
+    path: '/',
   });
 
   res.status(200).json({
@@ -126,9 +142,9 @@ export const logoutUser = asyncHandler(async (req, res) => {
   });
 });
 
+// ─── ONBOARDING CONTROLLER ───
 export const completeOnboarding = async (req, res) => {
   try {
-    // 1. Grab the authenticated user's ID from your auth middleware (e.g., protect/verifyToken)
     const userId = req.user?._id; 
 
     if (!userId) {
@@ -138,24 +154,21 @@ export const completeOnboarding = async (req, res) => {
       });
     }
 
-    // 2. Extract the profile fields from the request body
     const { bio, workOrStudy, interests } = req.body;
 
-    // 3. Find the user and update the fields
-    // We explicitly set isOnboarded to true whether they filled it out or hit "Skip"
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
         $set: {
           bio: bio || "",
           workOrStudy: workOrStudy || "",
-          skills: Array.isArray(interests) ? interests : [],
+          interests: Array.isArray(interests) ? interests : [], // ✅ Fixed: was "skills"
           isOnboarded: true, 
         },
       },
       { 
-        returnDocument: 'after',          // Returns the freshly updated document
-        runValidators: true // Ensures schema constraints (like max length) are enforced
+        returnDocument: 'after',
+        runValidators: true
       }
     );
 
@@ -166,17 +179,18 @@ export const completeOnboarding = async (req, res) => {
       });
     }
 
-    // 4. Return the updated user object to sync with the frontend state
+    // ✅ Return the correct field name "interests" not "skills"
     return res.status(200).json({
       success: true,
-      message: "Onboarding profile synchronization complete.",
+      message: "Onboarding complete.",
       data: {
+        _id: updatedUser._id,
         fullname: updatedUser.fullname,
         username: updatedUser.username,
         email: updatedUser.email,
         bio: updatedUser.bio,
         workOrStudy: updatedUser.workOrStudy,
-        interests: updatedUser.interests,
+        interests: updatedUser.interests, // ✅ Matches what we saved
         isOnboarded: updatedUser.isOnboarded,
       },
     });
