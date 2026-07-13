@@ -128,7 +128,8 @@ const Homepage = () => {
           icon={<Users className="h-5 w-5" />}
           label="Network"
           active={activeTab === "network"}
-          onClick={() => setActiveTab("network")}
+          // onClick={() => setActiveTab("network")}
+          onClick={() => navigate("/network")}
         />
         <BottomNavItem
           icon={<SquarePlus className="h-5 w-5" />}

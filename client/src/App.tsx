@@ -9,6 +9,7 @@ import ProfilePage from "./pages/Profilepage"; // Importing your profile page fr
 import ProtectedRoute from "./components/ProtectedRoute"; // Importing the ProtectedRoute component
 import PostPage from "./pages/Postpage"; // Importing the PostPage component
 import Settingspage from "./pages/Settingspage";
+import NetworkPage from "./pages/Networkpage"; // Importing the ConnectionPage component
 const App = () => {
   return (
     <BrowserRouter>
@@ -59,6 +60,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <PostPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/network"
+            element={
+              <ProtectedRoute>
+                <NetworkPage />
               </ProtectedRoute>
             }
           />
