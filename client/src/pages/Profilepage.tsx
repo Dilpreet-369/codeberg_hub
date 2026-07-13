@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // ◄ IMPORTED: useParams to capture the URL parameter
 import axios from "axios";
 import {
   ArrowLeft,
@@ -27,26 +27,42 @@ interface UserProfileData {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { username } = useParams<{ username?: string }>(); // ◄ CAPTURE: Reads /profile/:username from address bar
 
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ FIXED: Fetch current logged-in user's profile on component mount
+  // 1. CHOOSE AN ANCHOR FOR YOUR LOGGED-IN SESSION
+  // Replace this placeholder with your actual global authenticated context user object if you use one (e.g., useAuth())
+  const loggedInUser = { username: "johndoe" }; 
+
+  // 2. COMPUTE DYNAMIC PROFILE OWNERSHIP
+  // If there's no username in the URL, OR it matches the session user exactly, it is your own profile.
+  const isOwnProfile = !username || username.toLowerCase() === loggedInUser.username.toLowerCase();
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // ✅ Fetch the current logged-in user's profile
-        // This assumes your backend has an endpoint that returns current user's profile
-        const response = await axios.get("/auth/profile", {
-          withCredentials: true, // ✅ IMPORTANT: Send cookies with request
-        });
+        let response;
+        
+        // 3. SWITCH API ENDPOINTS CONDITIONALLY
+        if (isOwnProfile) {
+          // Hits your private profile handler
+          response = await axios.get("/users/profile", {
+            withCredentials: true,
+          });
+        } else {
+          // Hits the public user search handler you added to your backend
+          response = await axios.get(`/users/profile/${username}`, {
+            withCredentials: true,
+          });
+        }
 
-        const profileData =
-          response.data?.data || response.data?.user || response.data;
+        const profileData = response.data?.data || response.data?.user || response.data;
 
         if (!profileData) {
           throw new Error("No profile data received");
@@ -56,7 +72,6 @@ const ProfilePage = () => {
       } catch (err: any) {
         console.error("Profile fetch error:", err);
 
-        // ✅ If unauthorized, redirect to login
         if (err.response?.status === 401) {
           navigate("/login");
           return;
@@ -72,7 +87,7 @@ const ProfilePage = () => {
     };
 
     fetchProfile();
-  }, [navigate]);
+  }, [username, isOwnProfile, navigate]); // ◄ CRITICAL DEPENDENCIES: Re-fetches whenever the URL username parameter toggles
 
   // Handler execution loop when clicking the "Connect" button action path
   const handleConnectAction = async () => {
@@ -83,9 +98,10 @@ const ProfilePage = () => {
         `/users/connect/${profile._id}`,
         {},
         {
-          withCredentials: true, // ✅ IMPORTANT: Send cookies
+          withCredentials: true,
         },
       );
+      alert(`Connection request sent to ${profile.fullname}!`);
     } catch (err) {
       console.error("Failed to post connection handshake:", err);
     }
@@ -106,17 +122,14 @@ const ProfilePage = () => {
           {error || "User data empty."}
         </p>
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/home")}
           className="text-xs font-bold text-indigo-500 hover:underline bg-transparent border-none cursor-pointer"
         >
-          Return to Login
+          Return to Dashboard
         </button>
       </div>
     );
   }
-
-  // ✅ FIXED: isOwnProfile now always true (since this is current user's profile)
-  const isOwnProfile = true;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans pb-12 transition-colors duration-200">
@@ -148,9 +161,11 @@ const ProfilePage = () => {
         {/* SECTION 1: HERO & IDENTITY CARD */}
         <div className="bg-white dark:bg-zinc-900 border-b sm:border border-zinc-200 dark:border-zinc-800/80 relative pb-5">
           <div className="h-28 w-full bg-zinc-200 dark:bg-zinc-800 relative border-b border-zinc-300/40 dark:border-zinc-700/30">
-            <button className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 dark:bg-zinc-900/80 text-zinc-700 dark:text-zinc-300 hover:bg-white transition border-none cursor-pointer">
-              <Camera className="h-4 w-4" />
-            </button>
+            {isOwnProfile && (
+              <button className="absolute top-3 right-3 p-1.5 rounded-full bg-white/80 dark:bg-zinc-900/80 text-zinc-700 dark:text-zinc-300 hover:bg-white transition border-none cursor-pointer">
+                <Camera className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <div className="px-4 -mt-14 relative z-10 flex justify-between items-end">
@@ -186,12 +201,15 @@ const ProfilePage = () => {
             {/* DYNAMIC PRIMARY ACTION ROW SWITCH CONTAINER */}
             <div className="flex items-center gap-2 mt-4">
               {isOwnProfile ? (
-                /* OWNER CONFIGURATION PATH: SHOW OPEN TO BUTTON */
-                <button className="flex-1 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-sm py-2 px-4 rounded-full hover:bg-indigo-700 transition border-none cursor-pointer">
+                /* OWNER CONFIGURATION PATH */
+                <button 
+                  onClick={() => navigate("/settings")}
+                  className="flex-1 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-sm py-2 px-4 rounded-full hover:bg-indigo-700 transition border-none cursor-pointer"
+                >
                   Edit Profile
                 </button>
               ) : (
-                /* EXTERNAL CONSUMER PATH: SHOW DYNAMIC RECONCILED CONNECTION COMPONENT BUTTONS */
+                /* EXTERNAL PEER ACCESS PATH */
                 <button
                   onClick={handleConnectAction}
                   className="flex-1 font-semibold text-sm py-2 px-4 rounded-full transition border-none cursor-pointer bg-indigo-600 dark:bg-indigo-500 text-white hover:bg-indigo-700"
@@ -225,8 +243,7 @@ const ProfilePage = () => {
             </div>
           ) : (
             <p className="text-xs text-zinc-400 dark:text-slate-500 italic">
-              No tech interests selected. Add skills to show up on the discovery
-              loops.
+              No tech interests selected. Add skills to show up on the discovery loops.
             </p>
           )}
         </div>

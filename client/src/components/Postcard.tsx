@@ -1,3 +1,6 @@
+import { useState } from "react";
+// ◄ ADDED: Import Link for routing transition
+import { Link } from "react-router-dom"; 
 import { Globe, MoreVertical, ThumbsUp, MessageSquare, Share2, Send } from "lucide-react";
 
 export interface PostData {
@@ -8,10 +11,11 @@ export interface PostData {
   commentsCount: number;
   timeAgo: string;
   author: {
+    username: string;        // ◄ ADDED: Needed to construct the dynamic URL path
     fullname: string;
     roleOrHeadline?: string;
     profilePic?: string;
-  } | null; // ✅ Author can be null if user deleted
+  } | null; 
 }
 
 const ActionButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
@@ -23,7 +27,6 @@ const ActionButton = ({ icon, label }: { icon: React.ReactNode; label: string })
 
 export const PostCard = ({ post }: { post: PostData }) => {
   
-  // ✅ ADDED: Check if author exists - prevents crash when user is deleted
   if (!post.author) {
     return (
       <div className="bg-white dark:bg-zinc-900 border-y sm:border border-zinc-200 dark:border-zinc-800/80 p-4 transition-colors duration-200">
@@ -34,8 +37,6 @@ export const PostCard = ({ post }: { post: PostData }) => {
     );
   }
   
-  // ─── MEDIA RECOGNITION ENGINE ───
-  // Scans the asset link for common video extensions (case-insensitive)
   const isVideo = post.imageUrl?.match(/\.(mp4|webm|ogg|mov|mkv)$/i);
 
   return (
@@ -44,17 +45,23 @@ export const PostCard = ({ post }: { post: PostData }) => {
       {/* Header Profile Frame Row */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5">
-          <div className="h-10 w-10 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center font-bold text-sm text-white shadow-xs overflow-hidden select-none shrink-0">
-            {post.author.profilePic ? (
-              <img src={post.author.profilePic} alt={post.author.fullname} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xs">{post.author.fullname.charAt(0)}</span>
-            )}
-          </div>
+          {/* Option: You can also wrap the avatar image so it is clickable */}
+          <Link to={`/profile/${post.author.username}`} className="shrink-0">
+            <div className="h-10 w-10 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center font-bold text-sm text-white shadow-xs overflow-hidden select-none">
+              {post.author.profilePic ? (
+                <img src={post.author.profilePic} alt={post.author.fullname} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs">{post.author.fullname.charAt(0)}</span>
+              )}
+            </div>
+          </Link>
 
           <div>
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight hover:underline cursor-pointer">
-              {post.author.fullname}
+            {/* ◄ ALTERED: Wrapped fullname in a dynamic Router Link targeting /profile/:username */}
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline">
+              <Link to={`/profile/${post.author.username}`}>
+                {post.author.fullname}
+              </Link>
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-60">
               {post.author.roleOrHeadline || "CodebergHub Developer"}
