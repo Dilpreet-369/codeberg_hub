@@ -2,6 +2,15 @@ import User from '../models/user.model.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import generateTokensAndSetCookie from '../utils/generateToken.js';
 import jwt from 'jsonwebtoken';
+import Post from '../models/post.model.js';
+import { v2 as cloudinary } from 'cloudinary';
+
+// Configure Cloudinary using project-specific credentials
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // ─── REGISTER CONTROLLER ───
 export const registerUser = asyncHandler(async (req, res) => {
@@ -202,3 +211,85 @@ export const completeOnboarding = async (req, res) => {
     });
   }
 };
+
+// Helper function to extract the Cloudinary public_id from its URL
+// Upgraded to extract both the Public ID and the true Cloudinary Resource Type
+const getPublicIdFromUrl = (url) => {
+  if (!url || typeof url !== 'string') return null;
+  
+  // 1. Determine resource type by inspecting the path preceding /upload/
+  let resourceType = 'image'; // default fallback
+  if (url.includes('/video/upload/')) {
+    resourceType = 'video';
+  } else if (url.includes('/raw/upload/')) {
+    resourceType = 'raw';
+  }
+
+  const parts = url.split('/upload/');
+  if (parts.length < 2) return null;
+  let pathWithExtension = parts[1];
+  
+  // Remove version prefix (e.g., v1720857321/) if present
+  pathWithExtension = pathWithExtension.replace(/^v\d+\//, '');
+  
+  // Remove the file extension  
+  let publicId = pathWithExtension;
+  const lastDotIndex = pathWithExtension.lastIndexOf('.');
+  if (lastDotIndex !== -1) {
+    publicId = pathWithExtension.substring(0, lastDotIndex);
+  }
+  
+  return { publicId, resourceType };
+};
+
+// ─── DELETE ACCOUNT CONTROLLER ───
+export const deleteAccount = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+
+  if (!userId) {
+    res.status(401);
+    throw new Error('Unauthorized: User not authenticated');
+  }
+
+  // 1. Query all posts matching this author
+  const posts = await Post.find({ author: userId });
+
+  // 2. Extract media URLs and delete corresponding Cloudinary assets dynamically
+  const imageUrls = posts.map((post) => post.imageUrl).filter(Boolean);
+  
+  for (const url of imageUrls) {
+    const assetData = getPublicIdFromUrl(url);
+    
+    if (assetData && assetData.publicId) {
+      try {
+        // Explicitly defining resource_type ensures both videos and images are dropped
+        await cloudinary.uploader.destroy(assetData.publicId, {
+          resource_type: assetData.resourceType,
+          invalidate: true // Invalidates CDN cached copies across edge servers
+        });
+      } catch (error) {
+        console.error(`Failed to delete Cloudinary asset ${assetData.publicId}:`, error);
+      }
+    }
+  }
+
+  // 3. Delete all posts authored by the user
+  await Post.deleteMany({ author: userId });
+
+  // 4. Delete the user document
+  await User.findByIdAndDelete(userId);
+
+  // 5. Clear authentication/session cookies with environment-matched configuration flags
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/',
+  };
+
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+
+  // 6. Return response success state
+  res.status(200).json({ success: true });
+});

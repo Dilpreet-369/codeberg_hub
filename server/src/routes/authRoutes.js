@@ -4,7 +4,8 @@ import {
   loginUser,
   refreshAccessToken,
   logoutUser,
-  completeOnboarding
+  completeOnboarding,
+  deleteAccount
 } from '../controller/auth.controller.js';
 import {
   protectRoute,
@@ -17,6 +18,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.put('/onboard', protectRoute, completeOnboarding);
+router.delete('/delete-account', protectRoute, deleteAccount);
 
 // // 2. Token Refresh Endpoint (Uses your custom cookie validator middleware)
 // router.post('/refresh-token', verifyRefreshToken, refreshAccessToken);
