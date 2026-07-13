@@ -1,0 +1,26 @@
+{
+  "name": "codeberg_hub",
+  "version": "1.0.0",
+  "description": "features till now remaining to implement: 1. during registeration checking if username is really unique in database (not matching with other users)",
+  "main": "index.js",
+  "scripts": {
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dilpreet-369/codeberg_hub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Dilpreet-369/codeberg_hub/issues"
+  },
+  "homepage": "https://github.com/Dilpreet-369/codeberg_hub#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

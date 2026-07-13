@@ -11,7 +11,7 @@ export interface PostData {
     fullname: string;
     roleOrHeadline?: string;
     profilePic?: string;
-  };
+  } | null; // ✅ Author can be null if user deleted
 }
 
 const ActionButton = ({ icon, label }: { icon: React.ReactNode; label: string }) => (
@@ -22,6 +22,17 @@ const ActionButton = ({ icon, label }: { icon: React.ReactNode; label: string })
 );
 
 export const PostCard = ({ post }: { post: PostData }) => {
+  
+  // ✅ ADDED: Check if author exists - prevents crash when user is deleted
+  if (!post.author) {
+    return (
+      <div className="bg-white dark:bg-zinc-900 border-y sm:border border-zinc-200 dark:border-zinc-800/80 p-4 transition-colors duration-200">
+        <p className="text-sm text-zinc-400 dark:text-zinc-500 italic">
+          Post author no longer exists
+        </p>
+      </div>
+    );
+  }
   
   // ─── MEDIA RECOGNITION ENGINE ───
   // Scans the asset link for common video extensions (case-insensitive)
