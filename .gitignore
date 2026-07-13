@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+/node_modules
+
+# Local Environment Variables
+.env*
+*.local
+
+# Production Build outputs
+dist/
+dist-ssr/
