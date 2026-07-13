@@ -163,7 +163,7 @@ export const completeOnboarding = async (req, res) => {
       });
     }
 
-    const { bio, workOrStudy, interests } = req.body;
+    const { bio, workOrStudy, skills } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -171,7 +171,7 @@ export const completeOnboarding = async (req, res) => {
         $set: {
           bio: bio || "",
           workOrStudy: workOrStudy || "",
-          interests: Array.isArray(interests) ? interests : [], // ✅ Fixed: was "skills"
+          skills: Array.isArray(skills) ? skills : [], // ✅ Fixed: was "skills"
           isOnboarded: true, 
         },
       },

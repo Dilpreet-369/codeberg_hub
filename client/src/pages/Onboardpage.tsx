@@ -9,7 +9,7 @@ interface StatusState {
 }
 
 // Pre-defined popular tags for swift mobile selection (Frictionless UX)
-const POPULAR_INTERESTS = [
+const POPULAR_SKILLS = [
   "MERN", "React", "Node.js", "MongoDB", "TypeScript", 
   "Python", "C++", "Linux", "Docker", "Cybersecurity"
 ];
@@ -18,7 +18,7 @@ const Onboardingpage = () => {
   const navigate = useNavigate();
   const [bio, setBio] = useState("");
   const [workOrStudy, setWorkOrStudy] = useState("");
-  const [interests, setInterests] = useState<string[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
   const [status, setStatus] = useState<StatusState | null>(null);
 
   const updateStatus = (
@@ -28,12 +28,12 @@ const Onboardingpage = () => {
     setStatus({ type, text });
   };
 
-  // Toggles interest array allocations smoothly
+  // Toggles skill array allocations smoothly
   const handleTagToggle = (tag: string) => {
-    if (interests.includes(tag)) {
-      setInterests(interests.filter((i) => i !== tag));
+    if (skills.includes(tag)) {
+      setSkills(skills.filter((s) => s !== tag));
     } else {
-      setInterests([...interests, tag]);
+      setSkills([...skills, tag]);
     }
   };
 
@@ -41,7 +41,7 @@ const Onboardingpage = () => {
   const submitOnboardingData = async (payload: {
     bio: string;
     workOrStudy: string;
-    interests: string[];
+    skills: string[];
   }, successMsg: string) => {
     updateStatus("loading", "Synchronizing developer profile map...");
     
@@ -68,14 +68,14 @@ const Onboardingpage = () => {
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     submitOnboardingData(
-      { bio, workOrStudy, interests },
+      { bio, workOrStudy, skills },
       "Profile configuration locked! Entering CodebergHub..."
     );
   };
 
   const handleSkipFlow = () => {
     submitOnboardingData(
-      { bio: "", workOrStudy: "", interests: [] },
+      { bio: "", workOrStudy: "", skills: [] },
       "Skipping setup. Welcome to CodebergHub!"
     );
   };
@@ -142,11 +142,11 @@ const Onboardingpage = () => {
           {/* Core Tech Stack Selection Tag Grid Layout */}
           <div className="flex flex-col gap-3">
             <label className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-              Select Core Interests
+              Select Core Skills
             </label>
             <div className="flex flex-wrap gap-1.5 max-h-35 overflow-y-auto pr-1 py-0.5 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
-              {POPULAR_INTERESTS.map((tag) => {
-                const isSelected = interests.includes(tag);
+              {POPULAR_SKILLS.map((tag) => {
+                const isSelected = skills.includes(tag);
                 return (
                   <button
                     key={tag}
