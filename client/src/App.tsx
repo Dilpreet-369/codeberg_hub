@@ -10,6 +10,8 @@ import ProtectedRoute from "./components/ProtectedRoute"; // Importing the Prote
 import PostPage from "./pages/Postpage"; // Importing the PostPage component
 import Settingspage from "./pages/Settingspage";
 import NetworkPage from "./pages/Networkpage"; // Importing the ConnectionPage component
+import ChatInboxpage from "./pages/ChatInboxpage"; // Importing the ChatInboxPage component
+import ChatRoompage from "./pages/ChatRoompage"; // Importing the ChatRoomPage component
 const App = () => {
   return (
     <BrowserRouter>
@@ -68,6 +70,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <NetworkPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <ChatInboxpage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages/:id"
+            element={
+              <ProtectedRoute>
+                <ChatRoompage />
               </ProtectedRoute>
             }
           />

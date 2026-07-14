@@ -114,7 +114,7 @@ const Homepage = () => {
         </div>
 
         {/* Global Chat Anchor Icon Link */}
-        <button className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition relative bg-transparent border-none cursor-pointer">
+        <button className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition relative bg-transparent border-none cursor-pointer" onClick={() => navigate("/messages")}>
           <MessageSquare className="h-5 w-5" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-indigo-500" />
         </button>
