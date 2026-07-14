@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   UserPlus,
   Check,
@@ -6,19 +8,26 @@ import {
   Users,
   Building,
   Hash,
-  Settings,
   ArrowLeft,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { profile } from "console";
-import { useNavigate } from "react-router-dom";
 
-// ─── TYPES & INTERFACES ───
-interface Invitation {
-  id: string;
-  name: string;
-  role: string;
-  avatar: string;
+// ─── DEFINED TYPES (Sourced Dynamically from the populated database) ───
+interface DBUser {
+  _id: string;
+  fullname: string;
+  username: string;
+  email: string;
+  workOrStudy?: string;
+  bio?: string;
+}
+
+interface ConnectionInvitation {
+  _id: string; // The connection document's ID
+  sender: DBUser; // Hydrated sender data
+  status: "pending";
+  createdAt: string;
 }
 
 interface Suggestion {
@@ -34,111 +43,36 @@ interface Suggestion {
 type TabType = "people" | "groups" | "companies" | "hashtags";
 
 const NetworkPage = () => {
-  // ─── LOCAL STATE FOR INTERACTIVE MOCK DATA ───
   const navigate = useNavigate();
-  const [invitations, setInvitations] = useState<Invitation[]>([
-    {
-      id: "inv-1",
-      name: "Florjan Zyberaj",
-      role: "Student at Niagra University",
-      avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "inv-2",
-      name: "adigun ademola",
-      role: "advanced diploma at newstart institute canada",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    },
-    {
-      id: "inv-3",
-      name: "Sarah Roberts",
-      role: "Regional Human Resources Director / Deputy Total Force Management",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-    },
-  ]);
 
+  // ─── API CONTEXT STATES ───
+  const [invitations, setInvitations] = useState<ConnectionInvitation[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState<boolean>(true);
+  const [actionIdLoading, setActionIdLoading] = useState<string | null>(null); // Tracks which invitation row is processing
+
+  // Keeping hardcoded suggestions for standard layout feed
   const [suggestions, setSuggestions] = useState<Suggestion[]>([
     {
       id: "sug-1",
       name: "Henry Chesky",
       role: "Recruiter | Helping healthcare professionals scale up",
-      avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
       bannerBg: "bg-gradient-to-r from-purple-500 to-indigo-500",
       mutualCount: 34,
       mutualAvatars: [
         "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&auto=format&fit=crop&q=60",
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=50&auto=format&fit=crop&q=60",
       ],
     },
     {
       id: "sug-2",
       name: "Stephanie Heinert",
       role: "Recruiting at Stripe - we're Hiring!",
-      avatar:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
       bannerBg: "bg-gradient-to-r from-orange-400 to-amber-500",
       mutualCount: 9,
       mutualAvatars: [
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&auto=format&fit=crop&q=60",
-      ],
-    },
-    {
-      id: "sug-3",
-      name: "William Fleming",
-      role: "Scrum Servant Leader",
-      avatar:
-        "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150&auto=format&fit=crop&q=80",
-      bannerBg: "bg-gradient-to-r from-slate-400 to-slate-600",
-      mutualCount: 2,
-      mutualAvatars: [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=50&auto=format&fit=crop&q=60",
-      ],
-    },
-    {
-      id: "sug-4",
-      name: "Jason Lim",
-      role: "Brand Strategist / Bicycling Evangelist",
-      avatar:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80",
-      bannerBg: "bg-gradient-to-r from-sky-400 to-blue-500",
-      mutualCount: 2,
-      mutualAvatars: [
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=50&auto=format&fit=crop&q=60",
-      ],
-    },
-    {
-      id: "sug-5",
-      name: "Andrada Amitiei",
-      role: "#FlavoredWriting Freelance Emotion Strategist",
-      avatar:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
-      bannerBg: "bg-gradient-to-r from-teal-400 to-emerald-500",
-      mutualCount: 35,
-      mutualAvatars: [
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=50&auto=format&fit=crop&q=60",
-      ],
-    },
-    {
-      id: "sug-6",
-      name: "Deanna Isaacs",
-      role: "Syndicated Columnist and Freelance Writer",
-      avatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80",
-      bannerBg: "bg-gradient-to-r from-red-400 to-rose-500",
-      mutualCount: 3,
-      mutualAvatars: [
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&auto=format&fit=crop&q=60",
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=50&auto=format&fit=crop&q=60",
       ],
     },
   ]);
@@ -147,24 +81,78 @@ const NetworkPage = () => {
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
   const [showAllInvitations, setShowAllInvitations] = useState(false);
 
-  // ─── ACTION HANDLERS ───
-  const handleAcceptInvitation = (id: string) => {
-    setInvitations((prev) => prev.filter((inv) => inv.id !== id));
+  // ─── 1. FETCH REAL PENDING INVITATIONS ON MOUNT ───
+  useEffect(() => {
+    const fetchInvitations = async () => {
+      try {
+        setLoadingInvitations(true);
+        const res = await axios.get("/users/connections/pending", {
+          withCredentials: true,
+        });
+        if (res.data?.success) {
+          setInvitations(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch incoming connection invitations:", err);
+      } finally {
+        setLoadingInvitations(false);
+      }
+    };
+
+    fetchInvitations();
+  }, []);
+
+  // ─── 2. ACTION: ACCEPT REAL CONNECTION REQUEST ───
+  const handleAcceptInvitation = async (connectionId: string) => {
+    try {
+      setActionIdLoading(connectionId);
+      const res = await axios.put(
+        `/users/connections/accept/${connectionId}`,
+        {},
+        { withCredentials: true }
+      );
+      if (res.data?.success) {
+        // Remove item instantly from local array upon success
+        setInvitations((prev) => prev.filter((inv) => inv._id !== connectionId));
+      }
+    } catch (err) {
+      console.error("Failed to accept invitation:", err);
+    } finally {
+      setActionIdLoading(null);
+    }
   };
 
-  const handleIgnoreInvitation = (id: string) => {
-    setInvitations((prev) => prev.filter((inv) => inv.id !== id));
+  // ─── 3. ACTION: DECLINE/IGNORE REAL CONNECTION REQUEST ───
+  const handleIgnoreInvitation = async (connectionId: string) => {
+    try {
+      setActionIdLoading(connectionId);
+      const res = await axios.put(
+        `/users/connections/reject/${connectionId}`,
+        {},
+        { withCredentials: true }
+      );
+      if (res.data?.success) {
+        // Remove item instantly from local array upon success
+        setInvitations((prev) => prev.filter((inv) => inv._id !== connectionId));
+      }
+    } catch (err) {
+      console.error("Failed to reject invitation:", err);
+    } finally {
+      setActionIdLoading(null);
+    }
   };
 
   const toggleConnect = (id: string) => {
     setConnectedIds((prev) =>
-      prev.includes(id) ? prev.filter((cId) => cId !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((cId) => cId !== id) : [...prev, id]
     );
   };
 
   return (
     <div className="min-h-screen bg-zinc-100 dark:bg-zinc-950 py-6 px-4 antialiased font-sans transition-colors duration-200">
-      <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
+      
+      {/* HEADER NAVBAR */}
+      <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-3 flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
@@ -177,8 +165,10 @@ const NetworkPage = () => {
           </span>
         </div>
       </header>
+
       <div className="max-w-4xl mx-auto space-y-4">
-        {/* ─── SECTION 1: INVITATIONS CARD ─── */}
+        
+        {/* ─── SECTION 1: DYNAMIC INVITATIONS CARD ─── */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-xs">
           <div className="p-4 flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800/60">
             <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
@@ -190,7 +180,11 @@ const NetworkPage = () => {
           </div>
 
           <div className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-            {invitations.length === 0 ? (
+            {loadingInvitations ? (
+              <div className="p-8 flex justify-center items-center">
+                <Loader2 className="h-5 w-5 animate-spin text-zinc-500" />
+              </div>
+            ) : invitations.length === 0 ? (
               <p className="text-xs text-zinc-500 p-6 text-center">
                 No pending invitations
               </p>
@@ -198,42 +192,59 @@ const NetworkPage = () => {
               (showAllInvitations ? invitations : invitations.slice(0, 3)).map(
                 (inv) => (
                   <div
-                    key={inv.id}
+                    key={inv._id}
                     className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50/40 dark:hover:bg-zinc-800/10 transition"
                   >
-                    <div className="flex items-center gap-3.5">
-                      <img
-                        src={inv.avatar}
-                        alt={inv.name}
-                        className="h-14 w-14 rounded-full object-cover shrink-0 border border-zinc-200 dark:border-zinc-700 shadow-xs"
-                      />
+                    {/* User Identity Details Card Block */}
+                    <div 
+                      onClick={() => navigate(`/profile/${inv.sender.username}`)}
+                      className="flex items-center gap-3.5 cursor-pointer group"
+                    >
+                      {/* Avatar container */}
+                      <div className="h-14 w-14 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 shadow-xs shrink-0">
+                        <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400">
+                          {inv.sender.fullname.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate leading-snug">
-                          {inv.name}
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate leading-snug transition">
+                          {inv.sender.fullname}
                         </h3>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed">
-                          {inv.role}
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-1">
+                          @{inv.sender.username}
+                        </p>
+                        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5 line-clamp-2 leading-relaxed">
+                          {inv.sender.workOrStudy || inv.sender.bio || "Member of Developer Ecosystem"}
                         </p>
                       </div>
                     </div>
+
+                    {/* ─── DYNAMIC ACCEPT & REJECT BUTTONS ─── */}
                     <div className="flex items-center justify-end gap-3 shrink-0 self-end sm:self-center">
                       <button
-                        onClick={() => handleIgnoreInvitation(inv.id)}
-                        className="px-3 py-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition bg-transparent border-none cursor-pointer"
+                        disabled={actionIdLoading !== null}
+                        onClick={() => handleIgnoreInvitation(inv._id)}
+                        className="px-3 py-1.5 text-xs font-bold text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-50 transition bg-transparent border-none cursor-pointer"
                       >
                         Ignore
                       </button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-indigo-950/30 rounded-full font-bold px-4 h-8"
-                        onClick={() => handleAcceptInvitation(inv.id)}
+                        disabled={actionIdLoading !== null}
+                        className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:border-emerald-400 dark:text-emerald-400 dark:hover:bg-emerald-950/30 rounded-full font-bold px-4 h-8 flex items-center gap-1.5"
+                        onClick={() => handleAcceptInvitation(inv._id)}
                       >
+                        {actionIdLoading === inv._id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5" />
+                        )}
                         Accept
                       </Button>
                     </div>
                   </div>
-                ),
+                )
               )
             )}
           </div>
@@ -254,7 +265,7 @@ const NetworkPage = () => {
             More suggestions for you
           </h2>
 
-          {/* Sub Navigation Segment Headers */}
+          {/* Sub Navigation Tabs */}
           <div className="flex items-center gap-6 border-b border-zinc-100 dark:border-zinc-800/60 mb-4 overflow-x-auto scrollbar-none">
             {(["people", "groups", "companies", "hashtags"] as TabType[]).map(
               (tab) => (
@@ -269,21 +280,16 @@ const NetworkPage = () => {
                 >
                   <div className="flex items-center gap-1.5">
                     {tab === "people" && <Users className="h-3.5 w-3.5" />}
-                    {tab === "groups" && (
-                      <Users className="h-3.5 w-3.5 text-zinc-400" />
-                    )}
-                    {tab === "companies" && (
-                      <Building className="h-3.5 w-3.5" />
-                    )}
+                    {tab === "groups" && <Users className="h-3.5 w-3.5 text-zinc-400" />}
+                    {tab === "companies" && <Building className="h-3.5 w-3.5" />}
                     {tab === "hashtags" && <Hash className="h-3.5 w-3.5" />}
                     {tab}
                   </div>
                 </button>
-              ),
+              )
             )}
           </div>
 
-          {/* Responsive Suggestions Dynamic Render Core View Grid */}
           {activeTab !== "people" ? (
             <div className="p-8 text-center text-xs text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800">
               Suggestions for {activeTab} will appear here.
@@ -297,12 +303,8 @@ const NetworkPage = () => {
                     key={person.id}
                     className="flex flex-col bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-xl overflow-hidden relative group hover:shadow-md transition duration-200"
                   >
-                    {/* Cover Banner Accent Layer */}
-                    <div
-                      className={`h-16 w-full ${person.bannerBg} opacity-85`}
-                    />
+                    <div className={`h-16 w-full ${person.bannerBg} opacity-85`} />
 
-                    {/* Profile Header Details Layout block */}
                     <div className="px-3 pb-4 flex flex-col items-center flex-1 text-center -mt-9">
                       <img
                         src={person.avatar}
@@ -316,7 +318,6 @@ const NetworkPage = () => {
                         {person.role}
                       </p>
 
-                      {/* Mutual Connections Row Indicator Layer */}
                       <div className="flex items-center justify-center gap-1.5 mt-4 mb-4 w-full">
                         <div className="flex -space-x-1.5 overflow-hidden">
                           {person.mutualAvatars.map((url, index) => (
@@ -334,7 +335,6 @@ const NetworkPage = () => {
                         </span>
                       </div>
 
-                      {/* Explicit Connect Request Execution Button Node */}
                       <Button
                         variant={isConnected ? "secondary" : "outline"}
                         size="sm"
@@ -359,11 +359,10 @@ const NetworkPage = () => {
                       </Button>
                     </div>
 
-                    {/* Single card item removal control button element */}
                     <button
                       onClick={() =>
                         setSuggestions((prev) =>
-                          prev.filter((p) => p.id !== person.id),
+                          prev.filter((p) => p.id !== person.id)
                         )
                       }
                       className="absolute top-1.5 right-1.5 p-1 rounded-full bg-black/20 hover:bg-black/40 text-white border-none cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-150"

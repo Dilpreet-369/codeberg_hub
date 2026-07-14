@@ -18,31 +18,49 @@ import {
 // ─── EXTERNAL IMPORT ARTIFACTS ───
 import { PostCard, PostData } from "@/components/Postcard";
 
+// Interface for the logged-in user profile identity
+interface LoggedInUserData {
+  username: string;
+  fullname: string;
+  profilePic?: string;
+}
+
 const Homepage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("home");
 
-  // ─── STATE MANAGEMENT FOR LIVE FEED ───
+  // ─── STATE MANAGEMENT FOR LIVE FEED & AUTH ───
   const [posts, setPosts] = useState<PostData[]>([]);
+  const [currentUser, setCurrentUser] = useState<LoggedInUserData | null>(null); // ◄ ADDED: Track who is logged in
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // ─── FETCH ENGINE EFFECT ───
   useEffect(() => {
-    const fetchAllPosts = async () => {
+    const fetchHomeData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // 2. Pass it inside the headers config object!
-        const res = await axios.get("/users/posts");
+        // 1. Fetch current logged-in user details for profile navigation layout
+        try {
+          const userRes = await axios.get("/users/profile", { withCredentials: true });
+          const userData = userRes.data?.data || userRes.data?.user || userRes.data;
+          if (userData?.username) {
+            setCurrentUser(userData);
+          }
+        } catch (userErr) {
+          console.error("Failed to fetch session identity context:", userErr);
+        }
+
+        // 2. Fetch all post cards
+        const res = await axios.get("/users/posts", { withCredentials: true });
 
         if (res.data?.success) {
           setPosts(res.data.data);
         }
       } catch (err: any) {
-        // This is catching the "Not authorized" string coming from your backend
         setError(
           err.response?.data?.message || "Failed to load community feed.",
         );
@@ -51,19 +69,35 @@ const Homepage = () => {
       }
     };
 
-    fetchAllPosts();
+    fetchHomeData();
   }, []);
+
+  // Safe handler fallback to routing path
+  const handleAvatarClick = () => {
+    if (currentUser?.username) {
+      navigate(`/profile/${currentUser.username.toLowerCase()}`);
+    } else {
+      // Fallback to general settings or dashboard fallback if session isn't loaded yet
+      navigate("/settings");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans pb-16 transition-colors duration-200 selection:bg-indigo-500/20">
+      
       {/* ─── TOP HEADER / STICKY SEARCH BAR ─── */}
       <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 py-2 flex items-center gap-3">
-        {/* User Mini Avatar Profile Trigger */}
+        
+        {/* ◄ FIXED: User Mini Avatar Dynamic Profile Link Trigger */}
         <div
-          className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden shrink-0 cursor-pointer border border-zinc-300 dark:border-zinc-600 flex items-center justify-center"
-          onClick={() => navigate("/profile")}
+          className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden shrink-0 cursor-pointer border border-zinc-300 dark:border-zinc-600 flex items-center justify-center select-none"
+          onClick={handleAvatarClick}
         >
-          <User className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+          {currentUser?.profilePic ? (
+            <img src={currentUser.profilePic} alt="Me" className="w-full h-full object-cover" />
+          ) : (
+            <User className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+          )}
         </div>
 
         {/* Unified Search Input Container */}
@@ -89,7 +123,6 @@ const Homepage = () => {
       {/* ─── MAIN ACTIVITY FEED CONTAINER ─── */}
       <main className="w-full max-w-md mx-auto flex flex-col gap-2 mt-2 px-0 sm:px-2">
         {loading ? (
-          // State A: Async Pending Spinner
           <div className="flex flex-col items-center justify-center py-20 text-zinc-400 gap-2">
             <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
             <p className="text-xs font-medium tracking-wide">
@@ -97,13 +130,11 @@ const Homepage = () => {
             </p>
           </div>
         ) : error ? (
-          // State B: Catch block error component mapping
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center text-zinc-500 dark:text-zinc-400 gap-2">
             <AlertCircle className="h-6 w-6 text-red-500" />
             <p className="text-sm font-semibold">{error}</p>
           </div>
         ) : posts.length === 0 ? (
-          // State C: Successful fetch but zero entries in collection
           <div className="flex flex-col items-center justify-center py-20 text-center text-zinc-400 gap-1">
             <p className="text-sm font-bold">No activity yet</p>
             <p className="text-xs text-zinc-500">
@@ -111,7 +142,6 @@ const Homepage = () => {
             </p>
           </div>
         ) : (
-          // State D: Normal render of incoming live database references
           posts.map((post) => <PostCard key={post._id} post={post} />)
         )}
       </main>
@@ -128,7 +158,6 @@ const Homepage = () => {
           icon={<Users className="h-5 w-5" />}
           label="Network"
           active={activeTab === "network"}
-          // onClick={() => setActiveTab("network")}
           onClick={() => navigate("/network")}
         />
         <BottomNavItem
@@ -155,7 +184,6 @@ const Homepage = () => {
   );
 };
 
-// ─── COMPONENT: INDIVIDUAL NAVIGATION ANCHOR CELL ───
 interface NavItemProps {
   icon: React.ReactNode;
   label: string;
