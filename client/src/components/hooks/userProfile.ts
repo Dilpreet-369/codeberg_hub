@@ -1,3 +1,4 @@
+// hooks/useProfile.ts
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -13,19 +14,22 @@ export interface UserProfileData {
 
 export type ConnectionStatus = "none" | "pending" | "accepted" | "rejected";
 
-export const useProfile = (usernameParam: string | undefined, redirectToLogin: () => void) => {
+export const useProfile = (
+  usernameParam: string | undefined,
+  redirectToLogin: () => void,
+) => {
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("none");
+  const [connectionStatus, setConnectionStatus] =
+    useState<ConnectionStatus>("none");
   const [connectionId, setConnectionId] = useState<string | null>(null);
-  const [isSender, setIsSender] = useState<boolean>(false); 
+  const [isSender, setIsSender] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-  // Global authenticated credentials identity layer mock object
-  const loggedInUser = { username: "johndoe", _id: "6a548d12253b0cfd36ce7f6d" }; 
-  const isOwnProfile = !usernameParam || usernameParam.toLowerCase() === loggedInUser.username.toLowerCase();
+  // Track if the profile currently being viewed is the logged-in user's own
+  const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchProfileAndConnection = async () => {
@@ -33,23 +37,76 @@ export const useProfile = (usernameParam: string | undefined, redirectToLogin: (
         setLoading(true);
         setError(null);
 
-        const url = isOwnProfile ? "/users/profile" : `/users/profile/${usernameParam}`;
-        const profileResponse = await axios.get(url, { withCredentials: true });
-        const profileData = profileResponse.data?.data || profileResponse.data?.user || profileResponse.data;
+        // 1. Fetch the logged-in user's profile first to identify who "I" am
+        const meResponse = await axios.get("/users/profile", {
+          withCredentials: true,
+        });
+        const meData =
+          meResponse.data?.data || meResponse.data?.user || meResponse.data;
 
-        if (!profileData) throw new Error("No profile data received");
-        setProfile(profileData);
+        if (!meData || !meData._id) {
+          throw new Error("Could not verify session");
+        }
 
-        if (!isOwnProfile) {
-          const statusRes = await axios.get(`/users/connections/status/${profileData._id}`, { withCredentials: true });
+        // 2. Determine if we are looking at our own profile
+        const viewingOwn =
+          !usernameParam ||
+          usernameParam.toLowerCase() === meData.username.toLowerCase() ||
+          usernameParam === meData._id;
+
+        setIsOwnProfile(viewingOwn);
+
+        if (viewingOwn) {
+          // If viewing own profile, we already have the profile data!
+          setProfile(meData);
+        } else {
+          // 3. Viewing someone else's profile -> Fetch their profile specifically
+          const targetResponse = await axios.get(
+            `/users/profile/${usernameParam}`,
+            { withCredentials: true },
+          );
+          const targetData =
+            targetResponse.data?.data ||
+            targetResponse.data?.user ||
+            targetResponse.data;
+
+          if (!targetData) throw new Error("No profile data received");
+
+          // Double safety: If target profile ID matches my ID, it's actually my profile
+          if (targetData._id === meData._id) {
+            setIsOwnProfile(true);
+            setProfile(meData);
+            setLoading(false);
+            return;
+          }
+
+          setProfile(targetData);
+
+          // 4. Fetch connection status with this target user
+          // Inside useProfile.ts (useEffect)
+          const statusRes = await axios.get(
+            `/users/connections/status/${targetData._id}`,
+            { withCredentials: true },
+          );
+
           if (statusRes.data?.success && statusRes.data?.data) {
             const conn = statusRes.data.data;
-            setConnectionStatus(conn.status);
-            setConnectionId(conn._id);
-            setIsSender(conn.sender === loggedInUser._id);
+
+            // ⚡ THE FIX: If the connection is rejected, treat it as "none"
+            // so the "Connect" button renders again on refresh.
+            if (conn.status === "rejected") {
+              setConnectionStatus("none");
+              setConnectionId(null);
+              setIsSender(false);
+            } else {
+              setConnectionStatus(conn.status);
+              setConnectionId(conn._id);
+              setIsSender(conn.sender === meData._id);
+            }
           } else {
             setConnectionStatus("none");
             setConnectionId(null);
+            setIsSender(false);
           }
         }
       } catch (err: any) {
@@ -65,13 +122,19 @@ export const useProfile = (usernameParam: string | undefined, redirectToLogin: (
     };
 
     fetchProfileAndConnection();
-  }, [usernameParam, isOwnProfile]);
+  }, [usernameParam]); // Re-run whenever the URL profile changes
+
+  // ─── CONNECTION ACTIONS HANDLERS ───
 
   const handleConnectAction = async () => {
     if (!profile?._id || actionLoading) return;
     try {
       setActionLoading(true);
-      const res = await axios.post(`/users/connections/connect/${profile._id}`, {}, { withCredentials: true });
+      const res = await axios.post(
+        `/users/connections/connect/${profile._id}`,
+        {},
+        { withCredentials: true },
+      );
       if (res.data?.success) {
         setConnectionStatus("pending");
         setIsSender(true);
@@ -88,7 +151,11 @@ export const useProfile = (usernameParam: string | undefined, redirectToLogin: (
     if (!connectionId || actionLoading) return;
     try {
       setActionLoading(true);
-      const res = await axios.put(`/users/connections/accept/${connectionId}`, {}, { withCredentials: true });
+      const res = await axios.put(
+        `/users/connections/accept/${connectionId}`,
+        {},
+        { withCredentials: true },
+      );
       if (res.data?.success) setConnectionStatus("accepted");
     } catch (err) {
       console.error("Failed to accept connection:", err);
@@ -101,7 +168,11 @@ export const useProfile = (usernameParam: string | undefined, redirectToLogin: (
     if (!connectionId || actionLoading) return;
     try {
       setActionLoading(true);
-      const res = await axios.put(`/users/connections/reject/${connectionId}`, {}, { withCredentials: true });
+      const res = await axios.put(
+        `/users/connections/reject/${connectionId}`,
+        {},
+        { withCredentials: true },
+      );
       if (res.data?.success) {
         setConnectionStatus("none");
         setConnectionId(null);
@@ -124,6 +195,6 @@ export const useProfile = (usernameParam: string | undefined, redirectToLogin: (
     actionLoading,
     handleConnectAction,
     handleAcceptRequest,
-    handleRejectRequest
+    handleRejectRequest,
   };
 };
