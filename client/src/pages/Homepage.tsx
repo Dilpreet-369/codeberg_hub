@@ -14,7 +14,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-
+import { useNetworkbadge } from "@/components/hooks/useNetworkbadge";
 // ─── EXTERNAL IMPORT ARTIFACTS ───
 import { PostCard, PostData } from "@/components/Postcard";
 
@@ -35,7 +35,7 @@ const Homepage = () => {
   const [currentUser, setCurrentUser] = useState<LoggedInUserData | null>(null); // ◄ ADDED: Track who is logged in
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const networkRequestsCount = useNetworkbadge(); // Custom hook to fetch pending connection requests count
   // ─── FETCH ENGINE EFFECT ───
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -159,6 +159,7 @@ const Homepage = () => {
           label="Network"
           active={activeTab === "network"}
           onClick={() => navigate("/network")}
+          badgeCount={networkRequestsCount > 0 ? networkRequestsCount : undefined}
         />
         <BottomNavItem
           icon={<SquarePlus className="h-5 w-5" />}

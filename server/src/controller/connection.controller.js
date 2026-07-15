@@ -224,3 +224,22 @@ export const getConnectionStatus = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// backend controller endpoint mapping to: /users/connections/pending-count
+export const getPendingCount = async (req, res) => {
+  try {
+    const loggedInUser = req.user._id; 
+    
+    const count = await Connection.countDocuments({
+      receiver: loggedInUser,
+      status: "pending"
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: count // Ensure the field key is EXACTLY 'count'
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
