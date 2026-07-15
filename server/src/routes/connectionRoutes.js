@@ -6,7 +6,8 @@ import {
   acceptConnectionRequest,
   rejectConnectionRequest,
   getConnectionStatus,
-  getPendingCount
+  getPendingCount,
+  getConnectionsList, // ◄ Make sure this controller function is imported!
    // ◄ Make sure this controller function is imported!
 } from '../controller/connection.controller.js';
 
@@ -19,4 +20,5 @@ router.get('/status/:targetId', protectRoute, getConnectionStatus); // ◄ Front
 router.put('/accept/:id', protectRoute, acceptConnectionRequest);
 router.put('/reject/:id', protectRoute, rejectConnectionRequest);
 router.get('/pending-count', protectRoute, getPendingCount); // ◄ New route for pending request count
+router.get('/list', protectRoute, getConnectionsList); // ◄ New route for getting connections list
 export default router;

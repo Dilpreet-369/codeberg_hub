@@ -243,3 +243,46 @@ export const getPendingCount = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getConnectionsList = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+
+    // 1. Find all accepted connections involving the logged-in user
+    const connections = await Connection.find({
+      status: "accepted",
+      $or: [
+        { sender: loggedInUserId },
+        { receiver: loggedInUserId }
+      ]
+    }).populate("sender receiver", "fullname username profilePic bio workOrStudy"); 
+    // Populate pulls user details automatically from your Users collection
+
+    // 2. Map the DB documents into the clean structure your frontend expects
+    const conversations = connections.map((conn) => {
+      // Determine which side of the connection is the OTHER user
+      const otherUser = conn.sender._id.toString() === loggedInUserId.toString() 
+        ? conn.receiver 
+        : conn.sender;
+
+      return {
+        id: otherUser._id, // Using the other user's ID as the Chat Room ID
+        fullname: otherUser.fullname,
+        avatar: otherUser.profilePic || "",
+        badge: "none", // You can dynamically calculate this later from their profile profile details
+        isOnline: false, // Wire up to Socket.io later for live status updates
+        lastMessage: "Click to start a conversation", // Fallback text if no texts exist yet
+        isSenderMe: false,
+        timestamp: "", 
+        unreadCount: 0
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: conversations
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

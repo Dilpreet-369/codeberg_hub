@@ -3,10 +3,10 @@ import { Loader2 } from "lucide-react";
 
 // Hooks & UI Components
 import { useProfile } from "../components/hooks/userProfile.ts";
-import { ProfileHeader } from "../components/profilepagecomponents/ProfileHeader.tsx";
-import { IdentityCard } from "../components/profilepagecomponents/IdentityCard.tsx";
-import { ConnectionActions } from "../components/profilepagecomponents/ConnectionAction.tsx";
-import { TechStack } from "../components/profilepagecomponents/TechStack.tsx";
+import { ProfileHeader } from "../components/profilepage/ProfileHeader.tsx";
+import { IdentityCard } from "../components/profilepage/IdentityCard.tsx";
+import { ConnectionActions } from "../components/profilepage/ConnectionAction.tsx";
+import { TechStack } from "../components/profilepage/TechStack.tsx";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
