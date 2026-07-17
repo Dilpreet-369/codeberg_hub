@@ -1,5 +1,6 @@
 // components/InboxChatItem.tsx
 import React from "react";
+import { User } from "lucide-react"; // Imported standard profile placeholder
 
 export interface ChatThread {
   id: string;
@@ -27,15 +28,8 @@ export const InboxChatItem: React.FC<InboxChatItemProps> = ({ chat, onClick }) =
     >
       {/* AVATAR WRAPPER CARD CONTAINING DYNAMIC STYLED BADGES */}
       <div className="relative shrink-0">
-        <div className="relative h-14 w-14 rounded-full overflow-hidden border border-zinc-200/60 dark:border-zinc-700/50 bg-zinc-100 dark:bg-zinc-800">
-          <img
-            src={chat.avatar}
-            alt={chat.fullname}
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${chat.fullname}`;
-            }}
-          />
+        <div className="relative h-14 w-14 rounded-full overflow-hidden border border-zinc-200/60 dark:border-zinc-700/50 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+            <User className="h-6 w-6 text-zinc-400 dark:text-zinc-500" />
         </div>
 
         {/* Dynamic Overlap Frames for Open-To-Work / Hiring rings */}

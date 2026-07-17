@@ -51,6 +51,24 @@ const ChatInboxPage: React.FC = () => {
     fetchConversations();
   }, []);
 
+  const handleUserClick = async (targetUserId: string) => {
+    try {
+      // Hits the new Find-or-Create backend controller endpoint
+      const res = await axios.post(
+        "/chat/room",
+        { targetUserId },
+        { withCredentials: true },
+      );
+
+      if (res.data?.success) {
+        // Safely redirects to the permanent chatroom ID returned by the database
+        navigate(`/messages/${res.data.chatId}`);
+      }
+    } catch (err) {
+      console.error("Could not open chat room:", err);
+    }
+  };
+
   // Filter messages dynamically based on user search inputs
   const filteredThreads = threads.filter(
     (thread) =>
@@ -116,7 +134,7 @@ const ChatInboxPage: React.FC = () => {
             <InboxChatItem
               key={chat.id}
               chat={chat}
-              onClick={() => navigate(`/messages/${chat.id}`)}
+              onClick={() => handleUserClick(chat.id)}
             />
           ))
         ) : (

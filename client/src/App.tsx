@@ -82,7 +82,7 @@ const App = () => {
             }
           />
           <Route
-            path="/messages/:id"
+            path="/messages/:ChatId"
             element={
               <ProtectedRoute>
                 <ChatRoompage />

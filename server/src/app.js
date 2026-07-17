@@ -1,10 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import authRoutes from './routes/authRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import connectionRoutes from './routes/connectionRoutes.js'; // ◄ 1. IMPORT YOUR ROUTE FILE HERE
+import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
+import connectionRoutes from './routes/connection.routes.js'; // ◄ 1. IMPORT YOUR ROUTE FILE HERE
 import errorHandler from './utils/errorHandler.js';
+import chatRoutes from './routes/chat.routes.js'; // ◄ 1. IMPORT YOUR ROUTE FILE HERE
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users/connections', connectionRoutes);
 
 app.use('/api/users', userRoutes);
-
+app.use('/api/chat', chatRoutes); // ◄ 2. MOUNT IT HERE (Must be above /api/users to avoid being intercepted)
 app.use(errorHandler);
 
 export default app;

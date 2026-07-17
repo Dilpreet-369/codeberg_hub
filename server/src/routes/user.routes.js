@@ -4,7 +4,7 @@ import {
   createPost,
   getAllPosts,
   getPublicProfileByUsername
-} from '../controller/user.controller.js';
+} from '../controllers/user.controller.js';
 import { protectRoute } from '../middleware/authMiddleware.js'; // Your JWT validation middleware
 import { upload } from '../middleware/multerMiddleware.js'; // Your multer configuration for file uploads
 

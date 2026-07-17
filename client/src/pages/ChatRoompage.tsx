@@ -1,7 +1,7 @@
-// ChatRoomPage.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MoreVertical, Video, Loader2 } from "lucide-react";
+import axios from "axios";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChatMessage, Message } from "../components/chatroompage/ChatMessage";
 import { ChatInputComposer } from "../components/chatroompage/ChatInputComposer";
 
@@ -9,15 +9,13 @@ interface ChatPartner {
   fullname: string;
   status: string;
   avatar: string;
-  badge?: "open-to-work" | "hiring" | "none";
 }
 
 const ChatRoomPage: React.FC = () => {
   const navigate = useNavigate();
-  const { chatId } = useParams<{ chatId: string }>();
+  // Change this line:
+  const { ChatId } = useParams<{ ChatId: string }>();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  // ─── STATE MANAGEMENT ───
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatUser, setChatUser] = useState<ChatPartner | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -27,78 +25,85 @@ const ChatRoomPage: React.FC = () => {
     const loadConversationDetails = async () => {
       try {
         setLoading(true);
-        // TODO: Load conversation partner detail and dynamic logs from DB
-        // const res = await axios.get(`/api/messages/room/${chatId}`, { withCredentials: true });
-        // if (res.data?.success) {
-        //   setMessages(res.data.messages);
-        //   setChatUser(res.data.partner);
-        // }
-      } catch (err) {
-        console.error("Failed to load chat parameters:", err);
+        console.log("Fetching chat details for chatId:", ChatId);
+
+        const res = await axios.get(`/chat/room/${ChatId}`, {
+          withCredentials: true,
+        });
+
+        console.log("Full API response:", res);
+        console.log("Response data:", res.data);
+
+        if (res.data?.success) {
+          console.log("Messages received:", res.data.messages);
+          console.log("Partner info:", res.data.partner);
+          setMessages(res.data.messages || []);
+          setChatUser(res.data.partner);
+        } else {
+          console.error("API returned success: false", res.data);
+          // Even if success is false, we should still show the empty state
+          setMessages([]);
+        }
+      } catch (err: any) {
+        console.error("Failed to load chat logs:", err);
+        console.error("Error response:", err.response?.data);
+        console.error("Error status:", err.response?.status);
+        // Set empty state on error so user can see something
+        setMessages([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (chatId) {
+    if (ChatId) {
       loadConversationDetails();
     }
-  }, [chatId]);
+  }, [ChatId]);
 
   // Keep the viewport locked to the latest entry updates
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handler for sending messages
-  const handleSendMessage = (text: string) => {
-    const tempMsgObj: Message = {
-      id: `msg_${Date.now()}`,
-      senderId: "me", // Corresponds to logged-in profile ID
-      senderName: "Me",
-      senderAvatar: "",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      text: text,
-      type: "text"
-    };
+  // ─── HANDLER FOR SENDING MESSAGES ───
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim()) return;
 
-    // Emit socket.io package or send POST request here
-    setMessages((prev) => [...prev, tempMsgObj]);
+    try {
+      // POST the text message straight to the DB
+      const res = await axios.post(
+        "/chat/send",
+        { chatId: ChatId, text },
+        { withCredentials: true },
+      );
+
+      if (res.data?.success) {
+        // Instantly append the clean, saved message returned from the backend
+        setMessages((prev) => [...prev, res.data.data]);
+      }
+    } catch (err) {
+      console.error("Could not deliver message to DB:", err);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans antialiased max-w-md mx-auto border-x border-zinc-200 dark:border-zinc-800 flex flex-col h-screen overflow-hidden">
-      
       {/* ─── HEADER AREA ─── */}
-      <header className="flex items-center justify-between px-3 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
-          >
-            <ArrowLeft className="h-6 w-6 stroke-[1.8]" />
-          </button>
-          
-          <div className="flex flex-col">
-            <h1 className="text-base font-semibold leading-tight tracking-wide text-zinc-900 dark:text-zinc-100">
-              {chatUser?.fullname || "Conversation"}
-            </h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                {chatUser?.status || "Active Now"}
-              </span>
-            </div>
-          </div>
-        </div>
+      <header className="flex items-center gap-3 px-3 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-50 shrink-0">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer"
+        >
+          <ArrowLeft className="h-6 w-6 stroke-[1.8]" />
+        </button>
 
-        <div className="flex items-center gap-3 text-zinc-600 dark:text-zinc-400">
-          <button className="p-1 hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer">
-            <MoreVertical className="h-5 w-5" />
-          </button>
-          <button className="p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full hover:text-zinc-900 dark:hover:text-zinc-100 transition cursor-pointer">
-            <Video className="h-5 w-5 stroke-[1.8]" />
-          </button>
+        <div className="flex flex-col">
+          <h1 className="text-base font-semibold leading-none tracking-wide text-zinc-900 dark:text-zinc-100">
+            {chatUser?.fullname || "Conversation"}
+          </h1>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            {chatUser?.status || "Active Now"}
+          </span>
         </div>
       </header>
 
@@ -110,13 +115,14 @@ const ChatRoomPage: React.FC = () => {
             <p className="text-xs">Streaming logs...</p>
           </div>
         ) : messages.length > 0 ? (
-          messages.map((msg) => (
-            <ChatMessage key={msg.id} msg={msg} />
-          ))
+          messages.map((msg) => <ChatMessage key={msg.id} msg={msg} />)
         ) : (
+          /* Empty State: Shows up beautifully if no messages have been sent yet */
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-zinc-400">
-            <p className="text-sm font-medium">This is the start of your peer history.</p>
-            <p className="text-xs text-zinc-500 mt-1">Send an invitation or say hello!</p>
+            <p className="text-sm font-medium">
+              This is the start of your peer history.
+            </p>
+            <p className="text-xs text-zinc-500 mt-1">Say hello!</p>
           </div>
         )}
 

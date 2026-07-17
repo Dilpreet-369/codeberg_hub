@@ -9,7 +9,7 @@ import {
   getPendingCount,
   getConnectionsList, // ◄ Make sure this controller function is imported!
    // ◄ Make sure this controller function is imported!
-} from '../controller/connection.controller.js';
+} from '../controllers/connection.controller.js';
 
 const router = express.Router();
 

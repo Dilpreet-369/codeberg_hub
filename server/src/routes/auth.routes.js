@@ -6,7 +6,7 @@ import {
   logoutUser,
   completeOnboarding,
   deleteAccount
-} from '../controller/auth.controller.js';
+} from '../controllers/auth.controller.js';
 import {
   protectRoute,
 } from '../middleware/authMiddleware.js';
