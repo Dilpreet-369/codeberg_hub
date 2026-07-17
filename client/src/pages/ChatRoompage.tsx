@@ -81,7 +81,7 @@ const ChatRoomPage: React.FC = () => {
         // Instantly append the clean, saved message returned from the backend
         // In ChatRoomPage.tsx
         setMessages(
-          res.data.messages.map((msg) => ({
+          res.data.messages.map((msg: any) => ({
             ...msg,
             id: msg._id || msg.id,
             timestamp:
