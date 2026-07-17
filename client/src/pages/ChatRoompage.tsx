@@ -25,18 +25,18 @@ const ChatRoomPage: React.FC = () => {
     const loadConversationDetails = async () => {
       try {
         setLoading(true);
-        console.log("Fetching chat details for chatId:", ChatId);
+        // console.log("Fetching chat details for chatId:", ChatId);
 
         const res = await axios.get(`/chat/room/${ChatId}`, {
           withCredentials: true,
         });
 
-        console.log("Full API response:", res);
-        console.log("Response data:", res.data);
+        // console.log("Full API response:", res);
+        // console.log("Response data:", res.data);
 
         if (res.data?.success) {
-          console.log("Messages received:", res.data.messages);
-          console.log("Partner info:", res.data.partner);
+          // console.log("Messages received:", res.data.messages);
+          // console.log("Partner info:", res.data.partner);
           setMessages(res.data.messages || []);
           setChatUser(res.data.partner);
         } else {
@@ -45,9 +45,9 @@ const ChatRoomPage: React.FC = () => {
           setMessages([]);
         }
       } catch (err: any) {
-        console.error("Failed to load chat logs:", err);
-        console.error("Error response:", err.response?.data);
-        console.error("Error status:", err.response?.status);
+        // console.error("Failed to load chat logs:", err);
+        // console.error("Error response:", err.response?.data);
+        // console.error("Error status:", err.response?.status);
         // Set empty state on error so user can see something
         setMessages([]);
       } finally {
@@ -79,7 +79,15 @@ const ChatRoomPage: React.FC = () => {
 
       if (res.data?.success) {
         // Instantly append the clean, saved message returned from the backend
-        setMessages((prev) => [...prev, res.data.data]);
+        // In ChatRoomPage.tsx
+        setMessages(
+          res.data.messages.map((msg) => ({
+            ...msg,
+            id: msg._id || msg.id,
+            timestamp:
+              msg.timestamp || new Date(msg.createdAt).toLocaleTimeString(),
+          })),
+        );
       }
     } catch (err) {
       console.error("Could not deliver message to DB:", err);
