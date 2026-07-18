@@ -293,3 +293,11 @@ export const deleteAccount = asyncHandler(async (req, res) => {
   // 6. Return response success state
   res.status(200).json({ success: true });
 });
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select('-password');
+  res.status(200).json({
+    success: true,
+    user: user
+  });
+});

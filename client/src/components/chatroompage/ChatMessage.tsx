@@ -14,9 +14,10 @@ export interface Message {
 
 interface ChatMessageProps {
   msg: Message;
+  isCurrentUser: boolean; // ← Add this prop
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ msg }) => {
+export const ChatMessage: React.FC<ChatMessageProps> = ({ msg, isCurrentUser }) => {
   // System Notification Block Type
   if (msg.type === "system") {
     return (
@@ -31,26 +32,35 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ msg }) => {
     );
   }
 
+  // ─── Determine alignment based on sender ───
+  const alignment = isCurrentUser ? "items-end" : "items-start";
+  const bubbleColor = isCurrentUser 
+    ? "bg-indigo-500 dark:bg-indigo-600 text-white rounded-2xl rounded-tr-none" 
+    : "bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tl-none";
+  const nameColor = isCurrentUser 
+    ? "text-indigo-400 dark:text-indigo-300" 
+    : "text-zinc-600 dark:text-zinc-400";
+
   // Active Peer Conversation Bubble
   return (
-    <div className="flex flex-col gap-0.5 max-w-[85%]">
+    <div className={`flex flex-col gap-0.5 max-w-[85%] ${alignment}`}>
       {/* Sender name */}
-      <span className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 ml-1">
-        {msg.senderName}
+      <span className={`text-xs font-semibold ${nameColor} ${isCurrentUser ? 'mr-1' : 'ml-1'}`}>
+        {isCurrentUser ? "You" : msg.senderName}
       </span>
       
       {/* Message bubble with timestamp */}
       <div className="relative group">
         {/* Main message bubble */}
-        <div className="bg-indigo-500 dark:bg-indigo-600 text-white rounded-2xl rounded-tl-none px-4 py-2.5 shadow-sm">
+        <div className={`${bubbleColor} px-4 py-2.5 shadow-sm`}>
           {msg.type === "meeting_card" ? (
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
+              <div className={`${isCurrentUser ? 'bg-white/20' : 'bg-black/5 dark:bg-white/10'} p-2 rounded-lg`}>
                 <VideoIcon className="h-5 w-5 stroke-[1.8]" />
               </div>
               <div>
                 <h4 className="text-sm font-bold">{msg.meetingTitle}</h4>
-                <button className="text-xs font-semibold text-white/90 hover:text-white hover:underline bg-transparent border-none cursor-pointer">
+                <button className={`text-xs font-semibold ${isCurrentUser ? 'text-white/90 hover:text-white' : 'text-indigo-600 dark:text-indigo-400 hover:underline'} bg-transparent border-none cursor-pointer`}>
                   Join meeting →
                 </button>
               </div>
@@ -62,8 +72,8 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ msg }) => {
           )}
         </div>
         
-        {/* Timestamp - positioned below and to the right */}
-        <div className="flex justify-end mt-0.5">
+        {/* Timestamp - positioned below */}
+        <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mt-0.5`}>
           <span className="text-[10px] text-zinc-400 dark:text-zinc-500 px-1">
             {msg.timestamp}
           </span>

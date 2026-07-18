@@ -19,7 +19,21 @@ const ChatRoomPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatUser, setChatUser] = useState<ChatPartner | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const res = await axios.get('/auth/me', { withCredentials: true });
+        if (res.data?.success) {
+          setCurrentUserId(res.data.user._id);
+        }
+      } catch (err) {
+        console.error('Failed to get current user:', err);
+      }
+    };
+    getCurrentUser();
+  }, []);
   // ─── FETCH EFFECT PIPELINE ───
   useEffect(() => {
     const loadConversationDetails = async () => {
@@ -66,6 +80,7 @@ const ChatRoomPage: React.FC = () => {
   }, [messages]);
 
   // ─── HANDLER FOR SENDING MESSAGES ───
+  // ─── HANDLER FOR SENDING MESSAGES ───
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
@@ -77,20 +92,32 @@ const ChatRoomPage: React.FC = () => {
         { withCredentials: true },
       );
 
+      console.log("Send message response:", res.data); // Debug log
+
       if (res.data?.success) {
-        // Instantly append the clean, saved message returned from the backend
-        // In ChatRoomPage.tsx
-        setMessages(
-          res.data.messages.map((msg: any) => ({
-            ...msg,
-            id: msg._id || msg.id,
-            timestamp:
-              msg.timestamp || new Date(msg.createdAt).toLocaleTimeString(),
-          })),
-        );
+        // ─── FIX: Check if data exists before mapping ───
+        const newMessage = res.data.data; // The API returns a single message, not an array
+
+        if (newMessage) {
+          // Format the message if needed
+          const formattedMessage = {
+            ...newMessage,
+            id: newMessage._id || newMessage.id,
+            timestamp: newMessage.timestamp || new Date().toLocaleTimeString(),
+            type: newMessage.type || "text",
+          };
+
+          setMessages((prev) => [...prev, formattedMessage]);
+        } else {
+          console.warn("No message data returned from API");
+        }
+      } else {
+        console.error("API returned success: false", res.data);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Could not deliver message to DB:", err);
+      console.error("Error response:", err.response?.data);
+      console.error("Error status:", err.response?.status);
     }
   };
 
@@ -123,7 +150,13 @@ const ChatRoomPage: React.FC = () => {
             <p className="text-xs">Streaming logs...</p>
           </div>
         ) : messages.length > 0 ? (
-          messages.map((msg) => <ChatMessage key={msg.id} msg={msg} />)
+          messages.map((msg) => (
+            <ChatMessage 
+              key={msg.id} 
+              msg={msg} 
+              isCurrentUser={msg.senderId === currentUserId} 
+            />
+          ))
         ) : (
           /* Empty State: Shows up beautifully if no messages have been sent yet */
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-zinc-400">
