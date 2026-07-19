@@ -1,4 +1,3 @@
-// ChatInboxPage.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -15,25 +14,23 @@ import {
   InboxChatItem,
   ChatThread,
 } from "../components/chatinboxpage/ChatInboxItem";
+import { useSocket } from "@/context/SocketContext";
 
 const ChatInboxPage: React.FC = () => {
   const navigate = useNavigate();
+  const { socket, isConnected } = useSocket();
   const [searchQuery, setSearchQuery] = useState("");
-
-  // ─── STATE MANAGEMENT ───
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ─── FETCH REAL CHAT CONVERSATIONS ───
-  // Inside ChatInboxPage.tsx (Update the useEffect block)
+  // ─── FETCH CONVERSATIONS ───
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // ✅ Axios requests your new controller endpoint
         const res = await axios.get("/users/connections/list", {
           withCredentials: true,
         });
@@ -51,9 +48,37 @@ const ChatInboxPage: React.FC = () => {
     fetchConversations();
   }, []);
 
+  // ─── LISTEN FOR NEW MESSAGES ───
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (message: any) => {
+      // Update thread list with new message
+      setThreads((prev) => {
+        const existing = prev.find((t) => t.id === message.chatId);
+        if (existing) {
+          // Move to top with new message
+          const updated = prev.filter((t) => t.id !== message.chatId);
+          return [{ 
+            ...existing, 
+            lastMessage: message.text, 
+            timestamp: message.timestamp,
+            unread: true 
+          }, ...updated];
+        }
+        return prev;
+      });
+    };
+
+    socket.on('new-message', handleNewMessage);
+
+    return () => {
+      socket.off('new-message', handleNewMessage);
+    };
+  }, [socket]);
+
   const handleUserClick = async (targetUserId: string) => {
     try {
-      // Hits the new Find-or-Create backend controller endpoint
       const res = await axios.post(
         "/chat/room",
         { targetUserId },
@@ -61,7 +86,6 @@ const ChatInboxPage: React.FC = () => {
       );
 
       if (res.data?.success) {
-        // Safely redirects to the permanent chatroom ID returned by the database
         navigate(`/messages/${res.data.chatId}`);
       }
     } catch (err) {
@@ -69,7 +93,6 @@ const ChatInboxPage: React.FC = () => {
     }
   };
 
-  // Filter messages dynamically based on user search inputs
   const filteredThreads = threads.filter(
     (thread) =>
       thread.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,7 +101,7 @@ const ChatInboxPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans antialiased max-w-md mx-auto border-x border-zinc-200 dark:border-zinc-800 flex flex-col">
-      {/* ─── APP TOP NAV BAR ─── */}
+      {/* ─── HEADER ─── */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 sticky top-0 z-50">
         <div className="flex items-center gap-5">
           <button
@@ -88,6 +111,9 @@ const ChatInboxPage: React.FC = () => {
             <ArrowLeft className="h-6 w-6 stroke-[1.8]" />
           </button>
           <h1 className="text-xl font-medium tracking-wide">Messaging</h1>
+          {isConnected && (
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          )}
         </div>
         <div className="flex items-center gap-4 text-zinc-600 dark:text-zinc-400">
           <button className="hover:text-zinc-900 dark:hover:text-zinc-100 transition">
@@ -99,7 +125,7 @@ const ChatInboxPage: React.FC = () => {
         </div>
       </header>
 
-      {/* ─── SEARCH & FILTER UTILITY LAYER ─── */}
+      {/* ─── SEARCH ─── */}
       <div className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900/40">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 dark:text-zinc-500" />
@@ -116,13 +142,13 @@ const ChatInboxPage: React.FC = () => {
         </button>
       </div>
 
-      {/* ─── CHAT CONVERSATION STREAM LIST ─── */}
+      {/* ─── CHAT LIST ─── */}
       <main className="flex-1 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/60 flex flex-col">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center py-20 text-zinc-400 gap-2">
             <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
             <p className="text-xs font-medium tracking-wide">
-              Syncing inbox feed...
+              Loading conversations...
             </p>
           </div>
         ) : error ? (

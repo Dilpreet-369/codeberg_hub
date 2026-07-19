@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import { ThemeProvider } from "./components/ThemeContext.tsx";
 import "./index.css";
 import axios from 'axios';
+import { SocketProvider } from './context/SocketContext';
 
 // This forces ALL axios requests to pass credentials automatically
 axios.defaults.withCredentials = true;
@@ -20,7 +21,9 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <ThemeProvider>
-      <App />
+      <SocketProvider>
+        <App />
+      </SocketProvider>
     </ThemeProvider>
   </React.StrictMode>,
 );

@@ -1,28 +1,27 @@
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-
-import connectDB from "./db/db.js";
-
-import  app  from "./app.js";
+import { httpServer } from './app.js';
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import connectDB from './db/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 connectDB()
   .then(() => {
-    app.on("error", (error) => {
-      console.log("Express App error", error);
+    httpServer.on('error', (error) => {
+      console.log('Server error', error);
       throw error;
     });
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(
-        `Express app is listening on port ${process.env.PORT}`
-      );
+    
+    const PORT = process.env.PORT || 5000;
+    httpServer.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📡 Socket.io ready for connections`);
     });
   })
   .catch((error) => {
-    console.log("Mongo DB connection FAILED", error);
+    console.log('Mongo DB connection FAILED', error);
   });
