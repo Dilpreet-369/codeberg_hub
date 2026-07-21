@@ -27,7 +27,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     // ─── REMOVE /api FROM THE URL ───
-    const SOCKET_URL = 'http://localhost:5000'; // Hardcode for now
+    const SOCKET_URL = process.env.VITE_API_URL; // Hardcode for now
     
     console.log('🔌 Connecting to Socket.io at:', SOCKET_URL);
 
