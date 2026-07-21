@@ -11,9 +11,10 @@ import chatRoutes from './routes/chat.routes.js';
 
 const app = express();
 
+// ─── CORS MIDDLEWARE ───
 app.use(
   cors({
-    origin: [process.env.VITE_API_URL, 'http://localhost:5173', 'http://localhost:5000'],
+    origin: [process.env.CORS_ORIGIN || 'http://localhost:5173'], // ← FIX: Use CORS_ORIGIN
     credentials: true,
   }),
 );
@@ -22,19 +23,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/users/connections', connectionRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/chat', chatRoutes);
+// ─── ROUTES ───
+app.use('/auth', authRoutes);
+app.use('/users/connections', connectionRoutes);
+app.use('/users', userRoutes);
+app.use('/chat', chatRoutes);
 app.use(errorHandler);
 
 // ─── CREATE HTTP SERVER ───
 const httpServer = createServer(app);
 
-// ─── SOCKET.IO SETUP WITH CORS ───
+// ─── SOCKET.IO SETUP ───
 const io = new Server(httpServer, {
   cors: {
-    origin: [process.env.VITE_API_URL, 'http://localhost:5173', 'http://localhost:5000'],
+    origin: [process.env.CORS_ORIGIN || 'http://localhost:5173'], // ← FIX: Use CORS_ORIGIN, not PORT
     credentials: true,
     methods: ["GET", "POST"]
   },
@@ -90,4 +92,4 @@ io.on('connection', (socket) => {
   });
 });
 
-export { app, httpServer };
+export { app, httpServer }; 
