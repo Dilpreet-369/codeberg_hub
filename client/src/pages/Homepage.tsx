@@ -142,7 +142,15 @@ const Homepage = () => {
             </p>
           </div>
         ) : (
-          posts.map((post) => <PostCard key={post._id} post={post} />)
+          posts.map((post) => (
+            <PostCard
+              key={post._id}
+              post={post}
+              onLike={(postId, isLiked) => {
+                console.log(`Post ${postId} ${isLiked ? "liked" : "unliked"}`);
+              }}
+            />
+          ))
         )}
       </main>
 

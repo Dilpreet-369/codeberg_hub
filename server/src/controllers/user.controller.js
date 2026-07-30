@@ -12,9 +12,9 @@ export const getProfile = asyncHandler(async (req, res) => {
     throw new Error('User profile not found');
   }
 
-  res.status(200).json({ 
-    success: true, 
-    data: user 
+  res.status(200).json({
+    success: true,
+    data: user,
   });
 });
 
@@ -29,8 +29,8 @@ export const getPublicProfileByUsername = asyncHandler(async (req, res) => {
 
   // Find user by username using a case-insensitive match ($options: 'i')
   // Explicitly excludes sensitive credentials like passwords from transmission maps
-  const targetUser = await User.findOne({ 
-    username: { $regex: new RegExp(`^${username}$`, 'i') } 
+  const targetUser = await User.findOne({
+    username: { $regex: new RegExp(`^${username}$`, 'i') },
   }).select('-password');
 
   if (!targetUser) {
@@ -40,7 +40,7 @@ export const getPublicProfileByUsername = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: targetUser
+    data: targetUser,
   });
 });
 
@@ -66,7 +66,7 @@ export const createPost = asyncHandler(async (req, res) => {
 
   const populatedPost = await Post.findById(newPost._id).populate(
     'author',
-    'fullname username profilePic roleOrHeadline'
+    'fullname username profilePic roleOrHeadline',
   );
 
   res.status(201).json({
@@ -77,14 +77,74 @@ export const createPost = asyncHandler(async (req, res) => {
 });
 
 // ─── EXISTING: GET COMMUNITY TIMELINE ───
-export const getAllPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find({})
-    .populate('author', 'fullname username profilePic roleOrHeadline')
-    .sort({ createdAt: -1 });
+// In your getAllPosts controller
+export const getAllPosts = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate('author', 'fullname username profilePic roleOrHeadline')
+      .sort({ createdAt: -1 });
 
-  res.status(200).json({
-    success: true,
-    count: posts.length,
-    data: posts, 
-  });
-});
+    // ─── ADD VIRTUALS TO RESPONSE ───
+    const postsWithCounts = posts.map((post) => ({
+      ...post.toObject(),
+      likesCount: post.likesCount, // Virtual
+      commentsCount: post.commentsCount, // Virtual
+      isLiked: post.likes.includes(req.user._id), // Check if current user liked
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: postsWithCounts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch posts',
+    });
+  }
+};
+
+// In user.controller.js
+
+export const toggleLike = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.user._id;
+
+    // Find the post
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        error: 'Post not found',
+      });
+    }
+
+    // Check if user already liked this post
+    const likedIndex = post.likes.indexOf(userId);
+    const isLiked = likedIndex !== -1;
+
+    if (isLiked) {
+      // ─── UNLIKE: Remove user from likes array ───
+      post.likes.splice(likedIndex, 1);
+    } else {
+      // ─── LIKE: Add user to likes array ───
+      post.likes.push(userId);
+    }
+
+    await post.save();
+
+    // ─── RETURN UPDATED DATA ───
+    res.status(200).json({
+      success: true,
+      likesCount: post.likes.length, // Using actual array length
+      isLiked: !isLiked,
+    });
+  } catch (error) {
+    console.error('Error in toggleLike:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to toggle like',
+    });
+  }
+};
