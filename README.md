@@ -1,3 +1,3 @@
 Codeberg_hub
-email : johndoe@email.com
+email : john@email.com
 password : johndoe#123
